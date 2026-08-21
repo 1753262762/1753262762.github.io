@@ -1,0 +1,15 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SiteHeader from '../components/common/SiteHeader.astro';
+import AcgHome from '../components/acg/AcgHome.astro';
+
+const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort((a,b)=>b.data.published.valueOf()-a.data.published.valueOf());
+const projects = await getCollection('projects');
+const notes = (await getCollection('notes')).sort((a,b)=>b.data.created.valueOf()-a.data.created.valueOf());
+---
+
+<BaseLayout title="nabunana · 写作、音乐与代码" description="nabunana 的个人数字空间：写作、项目、音乐、ACG 与夏日片段。" pageClass="acg-site" lightingIntensity="display">
+  <SiteHeader current="home" />
+  <AcgHome {posts} {projects} {notes} prototype={false} />
+</BaseLayout>

@@ -1,0 +1,26 @@
+<div class="character" role="img" aria-label="可替换的角色立绘占位图">
+  <div class="orbit"><i></i><i></i><i></i></div>
+  <svg viewBox="0 0 420 560" aria-hidden="true">
+    <defs><linearGradient id="hair" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#8b7cff"/><stop offset="1" stop-color="#ff6fae"/></linearGradient></defs>
+    <path d="M112 192C116 82 300 40 335 184c28 114-1 266-31 322H89c-20-88-32-229 23-314Z" fill="url(#hair)" opacity=".88"/>
+    <ellipse cx="214" cy="209" rx="94" ry="112" fill="#fff0e8"/>
+    <path d="M117 195c8-101 71-140 142-116 48 16 75 63 78 118-46-17-90-49-110-82-19 40-60 70-110 80Z" fill="url(#hair)"/>
+    <path d="M151 203q22-19 44 0M238 203q22-19 44 0" fill="none" stroke="#38304c" stroke-width="8" stroke-linecap="round"/>
+    <path d="M191 250q23 20 48 0" fill="none" stroke="#df7892" stroke-width="6" stroke-linecap="round"/>
+    <path d="M96 508c11-131 75-171 117-171 56 0 112 40 126 171" fill="#f7f7ff" stroke="#8b7cff" stroke-width="5"/>
+    <path d="m166 345 48 53 49-53" fill="#ff6fae" opacity=".8"/>
+  </svg>
+  <span class="sticker one">✦</span><span class="sticker two">ねこ</span><span class="sticker three">01</span>
+</div>
+<style>
+  .character { position: relative; width: min(100%, 480px); aspect-ratio: .82; margin: auto; border-radius: 44% 44% 24% 24%; background: linear-gradient(145deg, rgb(139 124 255 / 20%), rgb(255 111 174 / 16%)); overflow: hidden; }
+  svg { position: absolute; inset: 2% 4% 0; width: 92%; height: 98%; filter: drop-shadow(0 24px 25px rgb(67 48 105 / 20%)); transition: transform .5s var(--ease); }
+  .character:hover svg { transform: translateY(-8px) rotate(-1deg); }
+  .orbit { position: absolute; inset: 9%; border: 1px dashed rgb(139 124 255 / 45%); border-radius: 50%; animation: spin 18s linear infinite; }
+  .orbit i { position: absolute; width: 10px; height: 10px; border-radius: 50%; background: #64d8cb; }.orbit i:nth-child(1){left:5%;top:24%}.orbit i:nth-child(2){right:8%;top:15%;background:#ff6fae}.orbit i:nth-child(3){right:1%;bottom:22%;background:#8b7cff}
+  .sticker { position: absolute; z-index: 2; display: grid; place-items: center; border: 1px solid rgb(255 255 255 / 65%); box-shadow: 0 10px 35px rgb(70 45 110 / 18%); }
+  .one { top: 12%; left: 8%; width: 54px; height: 54px; border-radius: 18px; background: #fff; color: #ff6fae; font-size: 1.4rem; transform: rotate(-8deg); }
+  .two { right: 7%; top: 30%; padding: .5rem .8rem; border-radius: 999px; background: #64d8cb; color: #173b37; font-weight: 800; transform: rotate(8deg); }
+  .three { left: 10%; bottom: 12%; width: 56px; height: 30px; border-radius: 999px; background: #8b7cff; color: #fff; font: .75rem var(--font-mono); }
+  @keyframes spin { to { transform: rotate(1turn); } }
+</style>

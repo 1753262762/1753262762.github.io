@@ -1,0 +1,23 @@
+---
+interface Props { current?: 'home' | 'writing' | 'music' | 'projects' | 'about'; }
+const { current } = Astro.props;
+const links = [
+  { key: 'home', label: '首页', sub: 'Home', href: '/' },
+  { key: 'writing', label: '文章', sub: 'Writing', href: '/blog/' },
+  { key: 'music', label: '音楽', sub: 'Music', href: '/music/' },
+  { key: 'projects', label: '作品', sub: 'Projects', href: '/projects/' },
+  { key: 'about', label: '关于', sub: 'About', href: '/about/' },
+] as const;
+---
+
+<header class="site-header container">
+  <a class="site-brand" href="/" aria-label="nabunana 首页"><span>N</span><i></i><b>nabunana</b></a>
+  <nav aria-label="主导航">{links.map((link) => <a href={link.href} aria-current={current === link.key ? 'page' : undefined}><span>{link.label}</span><small>{link.sub}</small></a>)}</nav>
+  <div class="header-actions"><a class="github-link" href="https://github.com/1753262762" target="_blank" rel="me noopener" aria-label="nabunana 的 GitHub">GitHub ↗</a><button type="button" data-search-open aria-label="打开搜索">⌕ <kbd>⌘K</kbd></button></div>
+  <details class="mobile-menu"><summary aria-label="打开导航">Menu</summary><div>{links.map((link) => <a href={link.href} aria-current={current === link.key ? 'page' : undefined}>{link.label} / {link.sub}</a>)}<a href="https://github.com/1753262762" target="_blank" rel="me noopener">GitHub ↗</a></div></details>
+</header>
+
+<style>
+  .site-header{height:72px;display:flex;align-items:center;justify-content:space-between;gap:2rem;border-bottom:1px solid var(--border)}.site-brand{display:flex;align-items:center;gap:.5rem;font-family:var(--font-serif)}.site-brand span{display:grid;place-items:center;width:25px;height:25px;border:1px solid var(--accent);border-radius:50%;font-size:.72rem}.site-brand i{width:19px;border-top:1px solid var(--accent);border-radius:50%;transform:rotate(-12deg)}.site-brand b{font-weight:600;letter-spacing:-.02em}.site-header nav{display:flex;align-items:center;gap:1.7rem}.site-header nav a{display:grid;color:var(--muted);font-size:.72rem;line-height:1.25}.site-header nav a small{font-size:.52rem;letter-spacing:.08em;opacity:.7}.site-header nav a:hover,.site-header nav a[aria-current='page']{color:var(--text)}.header-actions{display:flex;align-items:center;gap:.35rem}.header-actions button,.github-link{min-height:38px;padding:.5rem .65rem;border:1px solid var(--border);border-radius:6px;background:color-mix(in srgb,var(--surface) 80%,transparent);color:var(--text);cursor:pointer}.github-link{display:inline-flex;align-items:center;font-size:.62rem}.header-actions kbd{margin-left:.3rem;color:var(--muted);font:.62rem var(--font-mono)}.mobile-menu{display:none;position:relative}.mobile-menu summary{list-style:none;padding:.55rem .65rem;border:1px solid var(--border);border-radius:6px;color:var(--text);font:.65rem var(--font-mono);cursor:pointer}.mobile-menu summary::-webkit-details-marker{display:none}.mobile-menu>div{position:absolute;z-index:40;right:0;top:calc(100% + .5rem);width:210px;padding:.5rem;border:1px solid var(--border);border-radius:8px;background:var(--surface);box-shadow:0 12px 40px rgb(25 91 86 / 8%)}.mobile-menu a{display:block;padding:.7rem;color:var(--muted);font-size:.75rem}.mobile-menu a[aria-current='page']{color:var(--accent-deep)}
+  @media(max-width:800px){.site-header{gap:.6rem}.site-header nav{display:none}.header-actions kbd,.github-link{display:none}.mobile-menu{display:block}.site-brand b{display:none}}
+</style>

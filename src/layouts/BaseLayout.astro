@@ -1,0 +1,126 @@
+---
+import { getCollection } from 'astro:content';
+import { ClientRouter } from 'astro:transitions';
+import EnvironmentLighting from '../components/common/EnvironmentLighting.astro';
+import MusicPlayer from '../components/common/MusicPlayer.astro';
+import type { LightingIntensity } from '../lib/environment';
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+  prototype?: 'minimal' | 'acg' | 'product' | 'dev';
+  image?: string;
+  pageClass?: string;
+  lightingIntensity?: LightingIntensity;
+}
+
+const { title, description = 'nabunana 的个人数字空间：写作、项目、技术与生活。', prototype, image = '/og-default.svg', pageClass, lightingIntensity = 'standard' } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort((a, b) => b.data.published.valueOf() - a.data.published.valueOf());
+const pages = [
+  { title: 'Projects', description: '正在构建的项目与实验', href: '/projects/', meta: 'Page' },
+  { title: 'Music', description: 'Yorushika、n-buna、Vocaloid 与听歌记录', href: '/music/', meta: 'Page' },
+  { title: 'About', description: '关于这个数字空间和它的主人', href: '/about/', meta: 'Page' },
+];
+const searchItems = [
+  ...posts.map((post) => ({ title: post.data.title, description: post.data.description, href: `/blog/${post.id}/`, meta: `${post.data.category} · ${post.data.tags.join(' ')}` })),
+  ...pages,
+];
+---
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="description" content={description} />
+    <meta name="author" content="nabunana" />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="alternate" type="application/rss+xml" title="nabunana's Blog" href="/rss.xml" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={new URL(image, Astro.site)} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <title>{title}</title>
+    <ClientRouter />
+    <script is:inline>
+      (() => {
+        const root = document.documentElement;
+        const storageKey = 'nabunana:environment-v1';
+        let environment = null;
+        try {
+          const saved = localStorage.getItem(storageKey);
+          if (saved === 'summer' || saved === 'night') environment = saved;
+          if (!environment) {
+            const legacy = localStorage.getItem('theme');
+            if (legacy === 'light' || legacy === 'dark') {
+              environment = legacy === 'dark' ? 'night' : 'summer';
+              localStorage.setItem(storageKey, environment);
+              localStorage.removeItem('theme');
+            }
+          }
+        } catch {}
+        if (!environment) environment = matchMedia('(prefers-color-scheme: dark)').matches ? 'night' : 'summer';
+        root.dataset.environment = environment;
+        root.dataset.theme = environment === 'night' ? 'dark' : 'light';
+        root.dataset.lightingPreset = 'dawn-window';
+      })();
+    </script>
+  </head>
+  <body class:list={[prototype && `prototype-${prototype}`, pageClass]} data-lighting-intensity={lightingIntensity}>
+    <EnvironmentLighting />
+    <slot />
+    <MusicPlayer />
+    {prototype && <nav class="lab-bar" aria-label="原型快速切换">
+      <a class="lab-label" href="/prototype/">Design Lab</a>
+      {(['minimal','acg','product','dev'] as const).map((name) => <a href={`/prototype/${name}/`} aria-current={prototype === name ? 'page' : undefined}>{name[0].toUpperCase() + name.slice(1)}</a>)}
+      <button class="icon-button" type="button" data-search-open aria-label="打开搜索">⌕</button>
+    </nav>}
+
+    <dialog class="search-dialog" data-search-dialog aria-labelledby="search-title">
+      <h2 id="search-title" class="sr-only">站内搜索</h2>
+      <div class="search-head">
+        <span aria-hidden="true">⌕</span>
+        <input data-search-input type="search" placeholder="搜索文章、项目、标签…" autocomplete="off" />
+        <button class="icon-button" type="button" data-search-close aria-label="关闭搜索">×</button>
+      </div>
+      <div class="search-results" data-search-results>
+        {searchItems.map((item) => <a class="search-result" data-search-item data-search-text={`${item.title} ${item.description} ${item.meta}`.toLowerCase()} href={item.href}><strong>{item.title}</strong><small>{item.meta} · {item.description}</small></a>)}
+        <p class="search-empty" data-search-empty hidden>没有找到匹配内容。</p>
+      </div>
+    </dialog>
+    <script>
+      let globalControlsAbort: AbortController | undefined;
+      const bindGlobalControls = () => {
+        globalControlsAbort?.abort();
+        globalControlsAbort = new AbortController();
+        const { signal } = globalControlsAbort;
+
+        const dialog = document.querySelector<HTMLDialogElement>('[data-search-dialog]');
+        const input = document.querySelector<HTMLInputElement>('[data-search-input]');
+        const items = [...document.querySelectorAll<HTMLElement>('[data-search-item]')];
+        const empty = document.querySelector<HTMLElement>('[data-search-empty]');
+        const openSearch = () => { dialog?.showModal(); requestAnimationFrame(() => input?.focus()); };
+        const closeSearch = () => dialog?.close();
+        document.querySelectorAll('[data-search-open]').forEach((button) => button.addEventListener('click', openSearch, { signal }));
+        document.querySelector('[data-search-close]')?.addEventListener('click', closeSearch, { signal });
+        dialog?.addEventListener('click', (event) => { if (event.target === dialog) closeSearch(); }, { signal });
+        document.addEventListener('keydown', (event) => {
+          if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') { event.preventDefault(); openSearch(); }
+        }, { signal });
+        input?.addEventListener('input', () => {
+          const query = input.value.trim().toLowerCase();
+          let count = 0;
+          items.forEach((item) => { const visible = !query || item.dataset.searchText?.includes(query); item.hidden = !visible; if (visible) count++; });
+          if (empty) empty.hidden = count > 0;
+        }, { signal });
+      };
+      document.addEventListener('astro:page-load', bindGlobalControls);
+      bindGlobalControls();
+    </script>
+  </body>
+</html>

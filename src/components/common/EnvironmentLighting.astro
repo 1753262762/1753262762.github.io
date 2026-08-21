@@ -1,0 +1,247 @@
+---
+---
+
+<div class="environment-lighting" data-environment-lighting aria-hidden="true">
+  <div class="lighting-drift">
+    <span class="lighting-haze"></span>
+    <span class="lighting-source"></span>
+    <span class="lighting-ray"></span>
+    <span class="lighting-window"></span>
+    <span class="lighting-dust"></span>
+    <svg class="lighting-foliage" viewBox="0 0 720 560" preserveAspectRatio="xMidYMid slice" focusable="false">
+      <g class="foliage-branch">
+        <path d="M-30 86C124 94 215 150 330 252S564 408 760 432" />
+        <path d="M142 112c72 74 114 151 148 248M300 238c100-36 194-32 298 2M412 322c72-4 144 19 226 76" />
+      </g>
+      <g class="foliage-needles">
+        <ellipse cx="125" cy="111" rx="78" ry="17" transform="rotate(18 125 111)" />
+        <ellipse cx="220" cy="174" rx="96" ry="19" transform="rotate(28 220 174)" />
+        <ellipse cx="326" cy="251" rx="108" ry="20" transform="rotate(35 326 251)" />
+        <ellipse cx="435" cy="330" rx="102" ry="18" transform="rotate(31 435 330)" />
+        <ellipse cx="552" cy="398" rx="112" ry="19" transform="rotate(24 552 398)" />
+        <ellipse cx="380" cy="232" rx="96" ry="15" transform="rotate(-8 380 232)" />
+        <ellipse cx="515" cy="243" rx="88" ry="14" transform="rotate(6 515 243)" />
+      </g>
+    </svg>
+    <span class="lighting-galaxy"></span>
+    <span class="lighting-stars"></span>
+  </div>
+  <svg class="lighting-water" viewBox="0 0 1200 320" preserveAspectRatio="none" focusable="false">
+    <g>
+      <path d="M-80 44Q90 18 244 46T560 42T880 48T1280 38" />
+      <path d="M-40 88Q138 58 320 92T660 84T980 92T1260 78" />
+      <path d="M-100 132Q72 104 250 136T590 128T910 140T1300 120" />
+      <path d="M-50 178Q130 148 310 182T650 172T1010 184T1280 166" />
+      <path d="M-120 224Q70 194 270 228T620 216T940 232T1320 210" />
+      <path d="M-60 270Q118 240 300 274T680 262T1020 278T1280 254" />
+    </g>
+  </svg>
+</div>
+
+<aside class="environment-switcher" data-environment-controller transition:persist="environment-controller" aria-label="日夜环境">
+  <div class="environment-buttons" role="group" aria-label="切换 Summer 或 Night">
+    <span aria-hidden="true">光景</span>
+    <button type="button" data-environment-choice="summer" aria-pressed="true"><i aria-hidden="true">日</i>Summer</button>
+    <button type="button" data-environment-choice="night" aria-pressed="false"><i aria-hidden="true">月</i>Night</button>
+  </div>
+</aside>
+
+<script>
+  import {
+    DEFAULT_LIGHTING_PRESET,
+    ENVIRONMENT_STORAGE_KEY,
+    lightingPresetIds,
+    type EnvironmentMode,
+    type LightingPreset,
+  } from '../../lib/environment';
+
+  declare global {
+    interface WindowEventMap {
+      'nabunana:environment-change': CustomEvent<{ environment: EnvironmentMode; preset: LightingPreset; source: 'system' | 'user' | 'preview' | 'restore' }>;
+      'nabunana:environment-preview': CustomEvent<{ environment: EnvironmentMode; preset: LightingPreset }>;
+    }
+  }
+
+  let environmentAbort: AbortController | undefined;
+  let environmentFrame = 0;
+
+  const isEnvironment = (value: string | null): value is EnvironmentMode => value === 'summer' || value === 'night';
+  const isPreset = (value: string | null): value is LightingPreset => lightingPresetIds.includes(value as LightingPreset);
+
+  const readStoredEnvironment = (): EnvironmentMode | null => {
+    try {
+      const saved = localStorage.getItem(ENVIRONMENT_STORAGE_KEY);
+      return isEnvironment(saved) ? saved : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const updateEnvironmentUi = (environment: EnvironmentMode) => {
+    document.querySelectorAll<HTMLButtonElement>('[data-environment-choice]').forEach((button) => {
+      button.setAttribute('aria-pressed', String(button.dataset.environmentChoice === environment));
+    });
+
+    document.querySelectorAll<HTMLElement>('[data-environment-season]').forEach((node) => {
+      node.textContent = environment === 'summer' ? '夏 / SUMMER' : '夜 / NIGHT';
+    });
+  };
+
+  const applyEnvironment = (
+    environment: EnvironmentMode,
+    preset: LightingPreset,
+    source: 'system' | 'user' | 'preview' | 'restore',
+    persist = false,
+  ) => {
+    const root = document.documentElement;
+    root.dataset.environment = environment;
+    root.dataset.theme = environment === 'night' ? 'dark' : 'light';
+    root.dataset.lightingPreset = preset;
+
+    if (persist) {
+      try {
+        localStorage.setItem(ENVIRONMENT_STORAGE_KEY, environment);
+        localStorage.removeItem('theme');
+      } catch {
+        // The visual state still works when storage is blocked.
+      }
+    }
+
+    updateEnvironmentUi(environment);
+    window.dispatchEvent(new CustomEvent('nabunana:environment-change', {
+      detail: { environment, preset, source },
+    }));
+  };
+
+  const setupEnvironment = () => {
+    environmentAbort?.abort();
+    environmentAbort = new AbortController();
+    const { signal } = environmentAbort;
+    const root = document.documentElement;
+    const systemTheme = matchMedia('(prefers-color-scheme: dark)');
+    const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+    const params = new URL(location.href).searchParams;
+    const previewPreset = isPreset(params.get('lightingPreset')) ? params.get('lightingPreset') as LightingPreset : null;
+    const previewEnvironmentValue = params.get('environment') ?? params.get('mood');
+    const previewEnvironment = isEnvironment(previewEnvironmentValue) ? previewEnvironmentValue : null;
+    const stored = readStoredEnvironment();
+    const initialEnvironment = previewEnvironment ?? stored ?? (systemTheme.matches ? 'night' : 'summer');
+    const initialPreset = previewPreset ?? (isPreset(root.dataset.lightingPreset ?? null) ? root.dataset.lightingPreset as LightingPreset : DEFAULT_LIGHTING_PRESET);
+
+    applyEnvironment(initialEnvironment, initialPreset, previewEnvironment || previewPreset ? 'preview' : stored ? 'restore' : 'system');
+
+    document.querySelectorAll<HTMLButtonElement>('[data-environment-choice]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const environment = button.dataset.environmentChoice ?? null;
+        if (!isEnvironment(environment)) return;
+        const preset = isPreset(root.dataset.lightingPreset ?? null) ? root.dataset.lightingPreset as LightingPreset : DEFAULT_LIGHTING_PRESET;
+        applyEnvironment(environment, preset, 'user', true);
+      }, { signal });
+    });
+
+    systemTheme.addEventListener('change', (event) => {
+      if (readStoredEnvironment()) return;
+      const preset = isPreset(root.dataset.lightingPreset ?? null) ? root.dataset.lightingPreset as LightingPreset : DEFAULT_LIGHTING_PRESET;
+      applyEnvironment(event.matches ? 'night' : 'summer', preset, 'system');
+    }, { signal });
+
+    window.addEventListener('nabunana:environment-preview', (event) => {
+      applyEnvironment(event.detail.environment, event.detail.preset, 'preview');
+    }, { signal });
+
+    const resetParallax = () => {
+      root.style.setProperty('--light-shift-x', '0px');
+      root.style.setProperty('--light-shift-y', '0px');
+    };
+
+    if (!reducedMotion.matches) {
+      window.addEventListener('pointermove', (event) => {
+        if (environmentFrame) cancelAnimationFrame(environmentFrame);
+        environmentFrame = requestAnimationFrame(() => {
+          const range = event.pointerType === 'touch' ? 4 : 8;
+          const x = ((event.clientX / Math.max(innerWidth, 1)) - .5) * range * 2;
+          const y = ((event.clientY / Math.max(innerHeight, 1)) - .5) * range * 1.25;
+          root.style.setProperty('--light-shift-x', `${x.toFixed(2)}px`);
+          root.style.setProperty('--light-shift-y', `${y.toFixed(2)}px`);
+        });
+      }, { passive: true, signal });
+      window.addEventListener('blur', resetParallax, { signal });
+    } else {
+      resetParallax();
+    }
+
+    document.addEventListener('visibilitychange', () => {
+      root.classList.toggle('lighting-paused', document.hidden);
+    }, { signal });
+  };
+
+  document.addEventListener('astro:page-load', setupEnvironment);
+  setupEnvironment();
+</script>
+
+<style>
+  :global(:root){--light-shift-x:0px;--light-shift-y:0px;--lighting-angle:135deg;--lighting-highlight:255 225 168;--lighting-shadow:37 63 58;--lighting-layer-opacity:.173;--lighting-material-strength:13.8%;--lighting-edge-strength:22.4%;--lighting-source-x:16%;--lighting-source-y:8%;--lighting-source-size:64vmax;--lighting-ray-rotation:-14deg;--lighting-drift-duration:58s;--lighting-pulse-duration:24s;--lighting-foliage-duration:48s;--lighting-window-duration:88s;--lighting-water-duration:46s;--lighting-drift-start-x:-10px;--lighting-drift-start-y:-4px;--lighting-drift-end-x:14px;--lighting-drift-end-y:7px;--lighting-secondary-shift:12px;--lighting-haze-opacity:0;--lighting-window-opacity:0;--lighting-dust-opacity:0;--lighting-water-opacity:0}
+  :global(body[data-lighting-intensity='display']){--lighting-intensity:1;--lighting-layer-opacity:.19;--lighting-material-strength:13.8%;--lighting-edge-strength:22.4%;--lighting-drift-start-x:-12px;--lighting-drift-start-y:-6px;--lighting-drift-end-x:16px;--lighting-drift-end-y:9px;--lighting-secondary-shift:14px}
+  :global(body[data-lighting-intensity='standard']){--lighting-intensity:.6;--lighting-layer-opacity:.121;--lighting-material-strength:8.6%;--lighting-edge-strength:15.5%;--lighting-drift-start-x:-8px;--lighting-drift-start-y:-4px;--lighting-drift-end-x:11px;--lighting-drift-end-y:6px;--lighting-secondary-shift:9px}
+  :global(body[data-lighting-intensity='reading']){--lighting-intensity:.34;--lighting-layer-opacity:.072;--lighting-material-strength:5.2%;--lighting-edge-strength:10.4%;--lighting-drift-start-x:-5px;--lighting-drift-start-y:-2px;--lighting-drift-end-x:7px;--lighting-drift-end-y:4px;--lighting-secondary-shift:6px}
+
+  :global(:root[data-environment='summer'] body[data-lighting-intensity='display']){--lighting-layer-opacity:.08;--lighting-material-strength:5.85%;--lighting-edge-strength:9.5%}
+  :global(:root[data-environment='summer'] body[data-lighting-intensity='standard']){--lighting-layer-opacity:.0515;--lighting-material-strength:3.65%;--lighting-edge-strength:6.6%}
+  :global(:root[data-environment='summer'] body[data-lighting-intensity='reading']){--lighting-layer-opacity:.0305;--lighting-material-strength:2.2%;--lighting-edge-strength:4.4%}
+  :global(:root[data-environment='night'] body[data-lighting-intensity='display']){--lighting-layer-opacity:.065;--lighting-material-strength:4.8%;--lighting-edge-strength:7.85%}
+  :global(:root[data-environment='night'] body[data-lighting-intensity='standard']){--lighting-layer-opacity:.04;--lighting-material-strength:3%;--lighting-edge-strength:5.25%}
+  :global(:root[data-environment='night'] body[data-lighting-intensity='reading']){--lighting-layer-opacity:.0225;--lighting-material-strength:1.9%;--lighting-edge-strength:3.6%}
+
+  :global(:root[data-lighting-preset='dawn-window'][data-environment='summer']){--lighting-angle:135deg;--lighting-highlight:255 221 153;--lighting-shadow:42 69 62;--lighting-source-x:12%;--lighting-source-y:4%;--lighting-source-size:68vmax;--lighting-ray-rotation:-12deg;--lighting-drift-duration:48s;--lighting-pulse-duration:20s;--lighting-window-duration:76s;--lighting-water-duration:42s;--lighting-haze-opacity:.36;--lighting-window-opacity:.44;--lighting-dust-opacity:.4;--lighting-water-opacity:.18}
+  :global(:root[data-lighting-preset='dawn-window'][data-environment='night']){--lighting-angle:225deg;--lighting-highlight:214 232 230;--lighting-shadow:10 34 32;--lighting-source-x:88%;--lighting-source-y:8%;--lighting-source-size:58vmax;--lighting-ray-rotation:12deg;--lighting-drift-duration:60s;--lighting-pulse-duration:28s;--lighting-window-duration:104s;--lighting-water-duration:54s;--lighting-haze-opacity:.38;--lighting-window-opacity:.48;--lighting-dust-opacity:.14;--lighting-water-opacity:.55}
+  :global(:root[data-lighting-preset='pine-shadow'][data-environment='summer']){--lighting-angle:145deg;--lighting-highlight:255 229 174;--lighting-shadow:40 71 57;--lighting-source-x:28%;--lighting-source-y:4%;--lighting-source-size:62vmax;--lighting-ray-rotation:-8deg;--lighting-drift-duration:46s;--lighting-pulse-duration:22s;--lighting-foliage-duration:44s}
+  :global(:root[data-lighting-preset='pine-shadow'][data-environment='night']){--lighting-angle:215deg;--lighting-highlight:215 233 239;--lighting-shadow:0 18 23;--lighting-source-x:78%;--lighting-source-y:12%;--lighting-source-size:54vmax;--lighting-ray-rotation:8deg;--lighting-drift-duration:56s;--lighting-pulse-duration:30s;--lighting-foliage-duration:58s}
+  :global(:root[data-lighting-preset='silver-river'][data-environment='summer']){--lighting-angle:125deg;--lighting-highlight:255 220 169;--lighting-shadow:55 66 73;--lighting-source-x:20%;--lighting-source-y:10%;--lighting-source-size:74vmax;--lighting-ray-rotation:-18deg;--lighting-drift-duration:52s;--lighting-pulse-duration:24s}
+  :global(:root[data-lighting-preset='silver-river'][data-environment='night']){--lighting-angle:205deg;--lighting-highlight:224 235 247;--lighting-shadow:2 13 26;--lighting-source-x:68%;--lighting-source-y:18%;--lighting-source-size:68vmax;--lighting-ray-rotation:18deg;--lighting-drift-duration:68s;--lighting-pulse-duration:32s}
+
+  :global(:root[data-lighting-preset='dawn-window'][data-environment='summer'] body[data-lighting-intensity='standard']){--lighting-haze-opacity:.28;--lighting-window-opacity:.32;--lighting-dust-opacity:.3;--lighting-water-opacity:.12}
+  :global(:root[data-lighting-preset='dawn-window'][data-environment='summer'] body[data-lighting-intensity='reading']){--lighting-haze-opacity:.18;--lighting-window-opacity:.18;--lighting-dust-opacity:.16;--lighting-water-opacity:.07}
+  :global(:root[data-lighting-preset='dawn-window'][data-environment='night'] body[data-lighting-intensity='standard']){--lighting-haze-opacity:.28;--lighting-window-opacity:.34;--lighting-dust-opacity:.1;--lighting-water-opacity:.38}
+  :global(:root[data-lighting-preset='dawn-window'][data-environment='night'] body[data-lighting-intensity='reading']){--lighting-haze-opacity:.18;--lighting-window-opacity:.18;--lighting-dust-opacity:.05;--lighting-water-opacity:.22}
+
+  .environment-lighting{position:fixed;z-index:0;inset:0;overflow:hidden;pointer-events:none;opacity:var(--lighting-layer-opacity);transition:opacity .55s ease}
+  .lighting-drift{position:absolute;inset:-8%;animation:lighting-breathe var(--lighting-drift-duration) ease-in-out infinite alternate;transform-origin:center;will-change:translate,scale}
+  .lighting-haze{position:absolute;inset:-12%;background:radial-gradient(ellipse at var(--lighting-source-x) var(--lighting-source-y),rgb(var(--lighting-highlight)/.38),rgb(var(--lighting-highlight)/.08) 28%,transparent 62%),linear-gradient(var(--lighting-angle),rgb(var(--lighting-highlight)/.08),transparent 38%,rgb(var(--lighting-shadow)/.08));opacity:var(--lighting-haze-opacity);transform:translate3d(calc(var(--light-shift-x)*.28),calc(var(--light-shift-y)*.28),0);animation:haze-tide 72s ease-in-out infinite alternate;will-change:opacity,scale,translate}
+  .lighting-source{position:absolute;left:var(--lighting-source-x);top:var(--lighting-source-y);width:var(--lighting-source-size);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,rgb(var(--lighting-highlight)/.92) 0,rgb(var(--lighting-highlight)/.35) 18%,rgb(var(--lighting-highlight)/.08) 42%,transparent 70%);transform:translate3d(calc(-50% + var(--light-shift-x)),calc(-50% + var(--light-shift-y)),0);transition:left .8s var(--ease),top .8s var(--ease),background .8s ease;animation:light-source-breathe var(--lighting-pulse-duration) ease-in-out infinite alternate;will-change:opacity,scale}
+  .lighting-ray{position:absolute;left:var(--lighting-source-x);top:-22%;width:42vmax;height:145%;background:linear-gradient(90deg,transparent 5%,rgb(var(--lighting-highlight)/.08) 26%,transparent 38%,rgb(var(--lighting-highlight)/.2) 48%,rgb(var(--lighting-highlight)/.3) 51%,rgb(var(--lighting-highlight)/.08) 63%,transparent 82%);transform:translateX(calc(-50% + var(--light-shift-x))) rotate(var(--lighting-ray-rotation));transform-origin:50% 0;opacity:.5;transition:left .8s var(--ease),background .8s ease,transform .35s ease;animation:lighting-ray-breathe var(--lighting-pulse-duration) ease-in-out infinite alternate;will-change:opacity,translate}.lighting-ray::before{content:'';position:absolute;inset:0 18%;background:linear-gradient(90deg,transparent,rgb(var(--lighting-highlight)/.22) 50%,transparent);opacity:.35;animation:ray-inner-drift 37s ease-in-out infinite alternate}
+  .lighting-window{position:absolute;left:calc(var(--lighting-source-x) - 28vmax);top:-18%;width:min(58vw,860px);height:142%;background-image:linear-gradient(90deg,transparent 0 18%,rgb(var(--lighting-shadow)/.6) 18.5% 20%,transparent 20.6% 48%,rgb(var(--lighting-shadow)/.52) 48.5% 50%,transparent 50.7% 78%,rgb(var(--lighting-shadow)/.44) 78.5% 80%,transparent 80.7%),repeating-linear-gradient(0deg,transparent 0 118px,rgb(var(--lighting-shadow)/.3) 120px 123px,transparent 126px 174px),linear-gradient(105deg,rgb(var(--lighting-highlight)/.16),rgb(var(--lighting-highlight)/.045) 46%,transparent 74%);opacity:var(--lighting-window-opacity);mask-image:linear-gradient(180deg,transparent 0,#000 13%,#000 72%,transparent 98%);transform:translate3d(var(--light-shift-x),var(--light-shift-y),0) rotate(var(--lighting-ray-rotation));transform-origin:50% 0;animation:window-shadow-pass var(--lighting-window-duration) ease-in-out infinite alternate;will-change:translate,rotate,opacity}
+  .lighting-dust{position:absolute;inset:4% 3% 16%;background-image:radial-gradient(circle at 8% 18%,rgb(var(--lighting-highlight)/.72) 0 1px,transparent 1.6px),radial-gradient(circle at 17% 54%,rgb(var(--lighting-highlight)/.48) 0 1px,transparent 1.5px),radial-gradient(circle at 29% 31%,rgb(var(--lighting-highlight)/.62) 0 .8px,transparent 1.5px),radial-gradient(circle at 43% 73%,rgb(var(--lighting-highlight)/.55) 0 1px,transparent 1.8px),radial-gradient(circle at 58% 22%,rgb(var(--lighting-highlight)/.52) 0 .9px,transparent 1.5px),radial-gradient(circle at 69% 61%,rgb(var(--lighting-highlight)/.68) 0 1px,transparent 1.7px),radial-gradient(circle at 82% 38%,rgb(var(--lighting-highlight)/.45) 0 .8px,transparent 1.4px),radial-gradient(circle at 91% 76%,rgb(var(--lighting-highlight)/.58) 0 1px,transparent 1.7px);opacity:var(--lighting-dust-opacity);transform:translate3d(calc(var(--light-shift-x)*.7),calc(var(--light-shift-y)*.7),0);animation:dust-float 68s linear infinite alternate;will-change:translate,opacity}
+  .lighting-foliage{position:absolute;inset:-8% -5% auto auto;width:min(78vw,980px);height:auto;color:rgb(var(--lighting-shadow)/.9);fill:currentColor;stroke:currentColor;stroke-width:10;stroke-linecap:round;opacity:0;transform:translate3d(var(--light-shift-x),var(--light-shift-y),0) rotate(-5deg);transform-origin:70% 10%;transition:opacity .8s ease,color .8s ease;animation:foliage-drift var(--lighting-foliage-duration) ease-in-out infinite alternate;will-change:translate,rotate}.foliage-needles{opacity:.42}.foliage-branch{fill:none;opacity:.48}
+  .lighting-galaxy{position:absolute;left:5%;top:18%;width:112%;height:36%;border-radius:50%;background:linear-gradient(180deg,transparent,rgb(var(--lighting-highlight)/.3) 48%,rgb(159 160 205/.12) 62%,transparent);opacity:0;transform:translate3d(var(--light-shift-x),var(--light-shift-y),0) rotate(-12deg);transition:opacity .8s ease,background .8s ease;animation:galaxy-drift var(--lighting-drift-duration) ease-in-out infinite alternate;will-change:translate,scale}
+  .lighting-stars{position:absolute;inset:0;background-image:radial-gradient(circle at 11% 18%,rgb(var(--lighting-highlight)/.72) 0 1px,transparent 1.6px),radial-gradient(circle at 34% 9%,rgb(var(--lighting-highlight)/.55) 0 1px,transparent 1.7px),radial-gradient(circle at 62% 21%,rgb(var(--lighting-highlight)/.62) 0 1px,transparent 1.8px),radial-gradient(circle at 83% 13%,rgb(var(--lighting-highlight)/.48) 0 1px,transparent 1.7px),radial-gradient(circle at 72% 41%,rgb(var(--lighting-highlight)/.4) 0 1px,transparent 1.8px);opacity:0;transform:translate3d(calc(var(--light-shift-x)*.5),calc(var(--light-shift-y)*.5),0);transition:opacity .8s ease;animation:stars-drift var(--lighting-drift-duration) linear infinite alternate;will-change:background-position}
+  .lighting-water{position:absolute;left:-8%;bottom:-5%;width:116%;height:38vh;overflow:visible;color:rgb(var(--lighting-highlight)/.72);opacity:var(--lighting-water-opacity);mask-image:linear-gradient(180deg,transparent 0,#000 34%,#000 80%,transparent 100%);transform:translate3d(calc(var(--light-shift-x)*-.35),calc(var(--light-shift-y)*-.2),0) perspective(720px) rotateX(58deg);transform-origin:50% 100%;animation:water-breathe var(--lighting-water-duration) ease-in-out infinite alternate;will-change:translate,scale,opacity}.lighting-water path{fill:none;stroke:currentColor;stroke-width:1.2;stroke-linecap:round;stroke-dasharray:18 34 62 46 12 58;vector-effect:non-scaling-stroke;animation:water-glimmer calc(var(--lighting-water-duration)*.82) linear infinite}.lighting-water path:nth-child(2n){stroke-width:.8;stroke-dasharray:9 26 48 58;animation-direction:reverse;animation-duration:calc(var(--lighting-water-duration)*1.08)}.lighting-water path:nth-child(3n){opacity:.55;animation-delay:-17s}
+  :global(:root[data-lighting-preset='pine-shadow']) .lighting-foliage{opacity:.38}
+  :global(:root[data-lighting-preset='pine-shadow'][data-environment='night']) .lighting-foliage{opacity:.28}
+  :global(:root[data-lighting-preset='silver-river']) .lighting-galaxy{opacity:.72}
+  :global(:root[data-lighting-preset='silver-river'][data-environment='night']) .lighting-stars{opacity:.8}
+  :global(:root[data-lighting-preset='silver-river'][data-environment='summer']) .lighting-stars{opacity:.16}
+
+  :global(:where(.currently-grid article,.editorial-list>a,.notes-row article,.project-list article,.watching-grid article,.writing-list>a,.project-index article,.identity-grid article,.music-album-cover,.listening-note,.archive-rows article,.note-list a,.future-grid article)){background-image:radial-gradient(circle at var(--lighting-source-x) var(--lighting-source-y),color-mix(in srgb,rgb(var(--lighting-highlight)) var(--lighting-material-strength),transparent),transparent 46%),linear-gradient(var(--lighting-angle),color-mix(in srgb,rgb(var(--lighting-highlight)) calc(var(--lighting-material-strength)*.55),transparent),transparent 38%)!important;box-shadow:inset 0 1px 0 color-mix(in srgb,rgb(var(--lighting-highlight)) var(--lighting-edge-strength),transparent),inset 1px 0 0 color-mix(in srgb,rgb(var(--lighting-highlight)) calc(var(--lighting-edge-strength)*.34),transparent),0 18px 50px rgb(var(--lighting-shadow)/.08)}
+
+  .environment-switcher{position:fixed;z-index:75;right:max(14px,env(safe-area-inset-right));bottom:max(14px,env(safe-area-inset-bottom));display:flex;align-items:stretch;gap:7px;color:var(--text);transition:bottom .25s var(--ease),opacity .2s ease}
+  .environment-buttons{display:flex;align-items:center;gap:2px;padding:4px;border:1px solid var(--border);border-radius:8px;background:color-mix(in srgb,var(--surface) 88%,transparent);box-shadow:0 12px 36px rgb(var(--lighting-shadow)/.12);backdrop-filter:blur(16px)}.environment-buttons>span{padding:0 6px;color:var(--muted);font:.52rem var(--font-mono);letter-spacing:.08em}.environment-buttons button{display:inline-flex;min-height:44px;align-items:center;gap:5px;padding:0 10px;border:0;border-radius:5px;background:transparent;color:var(--muted);font:600 .58rem var(--font-mono);cursor:pointer}.environment-buttons button i{font:500 .72rem var(--font-serif);font-style:normal}.environment-buttons button[aria-pressed='true']{background:var(--accent-deep);color:#f3fffd}.environment-buttons button:hover:not([aria-pressed='true']){background:color-mix(in srgb,var(--surface-2) 82%,transparent);color:var(--text)}
+  :global(.prototype-acg) .environment-switcher{bottom:76px}
+  :global(.lighting-lab-page) .environment-switcher{display:none}
+  :global(:root.lighting-paused) .environment-lighting *{animation-play-state:paused!important}
+
+  @keyframes lighting-breathe{0%{scale:1;translate:var(--lighting-drift-start-x) var(--lighting-drift-start-y)}50%{scale:1.022}100%{scale:1.01;translate:var(--lighting-drift-end-x) var(--lighting-drift-end-y)}}
+  @keyframes haze-tide{0%{opacity:calc(var(--lighting-haze-opacity)*.76);scale:.99;translate:-.4% -.2%}55%{opacity:var(--lighting-haze-opacity);scale:1.018}100%{opacity:calc(var(--lighting-haze-opacity)*.84);scale:1.008;translate:.55% .3%}}
+  @keyframes light-source-breathe{0%{opacity:.84;scale:.985}55%{opacity:1;scale:1.022}100%{opacity:.92;scale:1.008}}
+  @keyframes lighting-ray-breathe{0%{opacity:.42;translate:calc(var(--lighting-secondary-shift) * -.45) 0}55%{opacity:.62}100%{opacity:.5;translate:var(--lighting-secondary-shift) 0}}
+  @keyframes ray-inner-drift{0%{opacity:.22;translate:-9% 0}100%{opacity:.44;translate:11% 0}}
+  @keyframes window-shadow-pass{0%{translate:calc(var(--lighting-secondary-shift)*-.6) -5px;rotate:-.35deg;opacity:calc(var(--lighting-window-opacity)*.78)}52%{opacity:var(--lighting-window-opacity)}100%{translate:var(--lighting-secondary-shift) 7px;rotate:.45deg;opacity:calc(var(--lighting-window-opacity)*.88)}}
+  @keyframes dust-float{0%{translate:-6px 8px;opacity:calc(var(--lighting-dust-opacity)*.62)}42%{opacity:var(--lighting-dust-opacity)}100%{translate:14px -12px;opacity:calc(var(--lighting-dust-opacity)*.78)}}
+  @keyframes foliage-drift{0%{rotate:-5.2deg;translate:calc(var(--lighting-secondary-shift) * -.65) -4px}100%{rotate:-4.1deg;translate:var(--lighting-secondary-shift) 6px}}
+  @keyframes galaxy-drift{0%{translate:calc(var(--lighting-secondary-shift) * -.7) -3px;scale:.995}100%{translate:var(--lighting-secondary-shift) 7px;scale:1.018}}
+  @keyframes stars-drift{0%{background-position:0 0}100%{background-position:var(--lighting-secondary-shift) calc(var(--lighting-secondary-shift) * .55)}}
+  @keyframes water-breathe{0%{translate:-9px 4px;scale:.992;opacity:calc(var(--lighting-water-opacity)*.7)}55%{opacity:var(--lighting-water-opacity)}100%{translate:12px -3px;scale:1.012;opacity:calc(var(--lighting-water-opacity)*.84)}}
+  @keyframes water-glimmer{to{stroke-dashoffset:-238}}
+  @media(max-width:700px){.environment-switcher{right:max(10px,env(safe-area-inset-right));bottom:calc(78px + env(safe-area-inset-bottom));max-width:calc(100vw - 20px);align-items:flex-end}.environment-buttons>span{display:none}.environment-buttons button{min-width:54px;padding-inline:7px}:global(body:has(.site-player[data-expanded='true'])) .environment-switcher{bottom:calc(154px + env(safe-area-inset-bottom))}:global(body:has(.site-player[data-library-open='true'])) .environment-switcher{opacity:0;pointer-events:none}}
+  @media(max-width:390px){.environment-buttons button{min-width:50px;font-size:.53rem}}
+  @media(prefers-reduced-motion:reduce){.environment-lighting *{animation:none!important;transition:none!important}.lighting-drift{transform:none}.lighting-foliage{transform:rotate(-5deg)}.environment-switcher{transition:none}}
+</style>
