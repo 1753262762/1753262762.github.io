@@ -14,6 +14,13 @@ export interface LightingPresetDefinition {
   description: string;
 }
 
+export interface LightingLiteraryLine {
+  line: string;
+  work: string;
+  author: string;
+  href: string;
+}
+
 export const ENVIRONMENT_STORAGE_KEY = 'nabunana:environment-v1';
 export const DEFAULT_LIGHTING_PRESET: LightingPreset = 'dawn-window';
 export const DEFAULT_LIGHTING_REGISTER: LightingRegister = 'quiet';
@@ -57,4 +64,19 @@ export const lightingRegisterMix: Record<
   grove: { dawn: 0.40, pine: 0.60, river: 0, dawnDrawing: 'skeleton' },
   field: { dawn: 0.25, pine: 0, river: 0.70, dawnDrawing: 'skeleton' },
   quiet: { dawn: 1, pine: 0, river: 0, dawnDrawing: 'quiet' },
+};
+
+export const lightingLiterature: Record<LightingPreset, Record<EnvironmentMode, LightingLiteraryLine>> = {
+  'dawn-window': {
+    summer: { line: '大きな赤い日', work: '夢十夜', author: '夏目漱石', href: 'https://www.aozora.gr.jp/cards/000148/files/799_14972.html' },
+    night: { line: '皎皎空中孤月轮', work: '春江花月夜', author: '张若虚', href: 'https://zh.wikisource.org/wiki/%E6%98%A5%E6%B1%9F%E8%8A%B1%E6%9C%88%E5%A4%9C_(%E5%BC%B5%E8%8B%A5%E8%99%9B)' },
+  },
+  'pine-shadow': {
+    summer: { line: '迟日江山丽', work: '绝句二首', author: '杜甫', href: 'https://zh.wikisource.org/wiki/%E7%B5%95%E5%8F%A5%E4%BA%8C%E9%A6%96_(%E6%9D%9C%E7%94%AB)' },
+    night: { line: '明月松间照', work: '山居秋暝', author: '王维', href: 'https://zh.wikisource.org/wiki/%E5%B1%B1%E5%B1%85%E7%A7%8B%E6%9A%9F' },
+  },
+  'silver-river': {
+    summer: { line: '春はあけぼの', work: '枕草子', author: '清少納言', href: 'https://ja.wikisource.org/wiki/%E6%9E%95%E8%8D%89%E5%AD%90_(Wikisource)/%E7%AC%AC%E4%B8%80%E6%AE%B5' },
+    night: { line: 'ぼんやりと白い銀河', work: '銀河鉄道の夜', author: '宮沢賢治', href: 'https://www.aozora.gr.jp/cards/000081/files/43737_19215.html' },
+  },
 };

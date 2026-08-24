@@ -1,0 +1,23 @@
+---
+import { lightingLiterature } from '../../lib/environment';
+const summer = lightingLiterature['dawn-window'].summer;
+const night = lightingLiterature['dawn-window'].night;
+---
+
+<p
+  class="lighting-whisper"
+  data-lighting-whisper
+  data-summer-line={summer.line}
+  data-summer-author={summer.author}
+  data-night-line={night.line}
+  data-night-author={night.author}
+>
+  <span class="whisper-line">{summer.line}</span>
+  <cite>{summer.author}</cite>
+</p>
+
+<style>
+  .lighting-whisper { display: flex; flex-wrap: wrap; gap: .45rem .75rem; align-items: baseline; margin: 2rem 0 0; padding-top: 1.25rem; border-top: 1px solid var(--border); }
+  .whisper-line { color: var(--strong); font: 500 1.05rem/1.6 var(--font-serif); letter-spacing: .03em; }
+  cite { color: var(--muted); font: normal .62rem/1 var(--font-mono); opacity: .55; }
+</style>

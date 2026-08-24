@@ -2,6 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import SiteHeader from '../components/common/SiteHeader.astro';
 import PageHero from '../components/common/PageHero.astro';
+import LightingWhisper from '../components/lighting/LightingWhisper.astro';
 ---
 <BaseLayout title="关于 · nabunana" description="关于 nabunana 与这个个人数字空间。" pageClass="acg-site" lightingRegister="threshold">
   <SiteHeader current="about" />
@@ -9,7 +10,7 @@ import PageHero from '../components/common/PageHero.astro';
   <main class="about-page container">
     <section class="intro"><p>01 / WHO</p><div><h2>你好，我是 nabunana。</h2><p>我喜欢把问题做成系统，再把系统写清楚。日常在工程实践、Agent、底层原理与前端体验之间来回，也会为音乐、ACG 和夏天留下空间。</p><a class="profile-link" href="https://github.com/1753262762" target="_blank" rel="me noopener">GitHub / 1753262762 ↗</a></div></section>
     <section class="identity-grid" aria-label="个人兴趣"><article><span>Developer</span><p>构建可靠、清晰、真正可用的软件。</p></article><article><span>Writer</span><p>记录过程，而不只展示结果。</p></article><article><span>Music Listener</span><p>Yorushika、n-buna 与 Vocaloid。</p></article><article><span>ACG</span><p>动画、故事，以及那些留下余韵的场景。</p></article></section>
-    <section class="place"><p>02 / THIS PLACE</p><div><h2>为什么还要有一个个人网站？</h2><p>因为信息流会不断向前，而个人网站允许内容按照自己的速度生长。这里不追求把每个兴趣做成标签墙，也不会让过时文章继续占据入口。</p><a href="/blog/">开始阅读 ↗</a><a href="/music/">进入音乐页 ↗</a></div></section>
+    <section class="place"><p>02 / THIS PLACE</p><div><h2>为什么还要有一个个人网站？</h2><p>因为信息流会不断向前，而个人网站允许内容按照自己的速度生长。这里不追求把每个兴趣做成标签墙，也不会让过时文章继续占据入口。</p><LightingWhisper /><a href="/blog/">开始阅读 ↗</a><a href="/music/">进入音乐页 ↗</a></div></section>
   </main>
   <footer class="about-footer"><div class="container"><strong>また、どこかで。</strong><p>See you somewhere on the internet.</p></div></footer>
 </BaseLayout>

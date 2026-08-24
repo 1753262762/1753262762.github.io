@@ -20,7 +20,7 @@
 - 同一条有机曲线可以被理解为风、海面或音频波形。
 - 使用 1px–1.5px 低对比描边。
 - 图形只作为 Atmosphere Layer，不抢占正文与信息层级。
-- 可辅助使用月亮、飞鸟、海平线和唱片圆环，但保持几何简洁。
+- 可辅助使用飞鸟、海平线和唱片圆环；几何月圈只在 Night 的 Motif 本地坐标内以不高于 `.2` 的透明度出现，Summer 隐藏。
 
 对应组件：`src/components/acg/WindWaveMotif.astro`。
 
@@ -45,15 +45,15 @@
 
 | Token | Value | Usage |
 | --- | --- | --- |
-| Background | `#071816` | 深夜海面，不使用纯黑 |
-| Surface | `#102B27` | 内容表面 |
-| Secondary Surface | `#143531` | 分区 |
-| Main Text | `#E8F3F1` | 正文 |
-| Strong Text | `#F3FBF9` | 标题 |
-| Muted Text | `#8FAEAA` | 元信息 |
-| Accent | `#64C7BD` | 月光青色 |
-| Soft Accent | `#96DDD5` | 低频强调 |
-| Border | `rgba(160,220,212,.14)` | 深色细线 |
+| Background | `#102724` | 墨绿月夜，不使用纯黑 |
+| Surface | `#18332F` | 内容表面 |
+| Secondary Surface | `#1E3B36` | 分区 |
+| Main Text | `#E7F0ED` | 正文 |
+| Strong Text | `#F3F8F6` | 标题 |
+| Muted Text | `#9EB3AE` | 元信息 |
+| Accent | `#78C5BB` | 月光青色 |
+| Soft Accent | `#91D6CD` | 低频强调 |
+| Border | `rgba(174,222,215,.15)` | 深色细线 |
 
 粉、紫、黄只能用于很小的状态或内容点缀，不得成为大面积背景。
 
@@ -104,13 +104,13 @@
 
 ## 8. Motion
 
-- 风、云、水波动画周期为 8s–20s；全站环境光的呼吸周期为 40s–90s。
-- 鼠标层次移动控制在 2px–6px。
+- 近景风、水波 Motif 周期为 8s–20s；全站环境天气周期为 45s–90s，层与层不得齐步。
+- 天气视差桌面控制在 4px，触摸保留 2px；Motif 自身的 6px × 4px 视差不叠加天气变量。
 - 页面反馈使用 180ms–320ms 的淡入、轻微位移或 Blur-lite。
 - 唱片廊默认巡航速度约 10px/s，悬停时平滑降至约 4px/s；主动拖拽拥有最高控制权，惯性结束后停顿约 800ms，再渐进恢复巡航。
 - 禁止 Bounce、高频 Parallax 和快速位移。
 - `prefers-reduced-motion` 下关闭非必要动画。
-- 移动端不启用鼠标视差。
+- 触摸移动端保留 2px 天气视差；只有 `prefers-reduced-motion` 才归零。
 
 ## 9. Responsive Rules
 
@@ -140,17 +140,21 @@
 
 ### Literary Environment Lighting
 
-- 环境状态写在 `<html data-environment="summer|night" data-lighting-preset="…">`，页面强度写在 `<body data-lighting-intensity="display|standard|reading">`。
-- 正式方案固定为 `dawn-window`（朝窗），包含 Summer / Night 两种环境；`pine-shadow` 与 `silver-river` 仅保留在开发比较器中，不进入正式访客选择。
-- 朝窗正式采用“纸窗晨月 × 水庭月影”：纸窗投影建立室内空间，Summer 以暖日、薄雾和少量尘埃为主，Night 以珍珠月光和页面底部的极淡水纹反射为主；不直接绘制太阳或月亮。
+- 站点是一座房子、三层景深：朝窗是室内孔径，松影是中景木漏日，星河是窗外远场；三者是生产空间层，不是三套皮肤，也不是访客换装盘。
+- 环境状态写在 `<html data-environment="summer|night">`；页面以 `<body data-lighting-register="threshold|grove|field|quiet|lab" data-lighting-intensity="display|standard|reading">` 决定空间进深。`data-lighting-preset` 只服务带 `lightingPreview=1` 的排他预览与 Lab。
+- 路由映射固定为：Home / About=`threshold`，Writing / Projects=`grove`，Music=`field`，文章=`quiet`；朝窗 full / skeleton / quiet 三张图纸始终挂在 persist 舞台上，以 0.65s opacity 行走，禁止 `display:none`。
+- 唯一合成公式为 `painted = 1 × --lighting-*-layer × local × gradient`。`.environment-lighting` 父级 opacity 锁死为 1；层 token 已经混合 register、environment 与 intensity，禁止再乘 mix 或 0.5。
+- Home Summer 主导朝窗层为 `.22`，22vmax 热核 local `.45`；Music Summer 星河层为 `.22`，紫 stop `.36`；文章 quiet 为 Summer `.08` / Night `.07`。Night 同格强度始终低于 Summer。
+- 朝窗使用 14% / 39% / 71% 竖梃和 22% / 58% 横档，Summer 保留小面积暖核，Night 使用横向银洗与底缘有机水纹；不直接绘制太阳或环境光月亮。
+- 松影只画 10 个疏斑与 6 条夜间银针，不画树；星河只画晨雾、单一日晕与乳白薄雾，不画星空壁纸。
 - 正式日夜控件只显示 Summer / Night，不展示诗句、出处或额外说明卡片。
-- 同一光源方向必须同时影响背景辐射、表面渐变、边缘高光和投影方向；禁止黄色/蓝色全屏滤镜、重 Bloom、视频背景或大尺寸贴图。
-- 首页和音乐页使用 `display` 强度，列表页使用 `standard`，文章页使用约 30%–35% 的 `reading` 强度。任何光影都不得降低正文对比度。
+- 文学短句只在 Lighting Lab 以全文与来源出现，并在 About `.place` 留一句“短句 + 作者”的无链接低语；首页、音乐页、文章、开关与深色页脚均为零。
+- 同一光源方向必须影响背景、线性表面高光、边缘和 Motif 的弱投影；禁止黄色/蓝色全屏滤镜、重 Bloom、视频背景、大贴图和满卡径向高光。
+- 文章使用对齐实装 `720px + 5rem + 180px` 栅格的阅读 mask，1440px 上洞从约 230px 开始；≤900px 收为 720px，≤800px 关闭。任何光影不得降低正文对比度。
 - Night 正式采用“墨绿月夜”：全站底色为 `#102724`，表面使用 `#18332f` / `#1e3b36`，文章页使用略浅的 `#122a27` 阅读底色，不使用中性纯黑。
-- 复杂朝窗光影经人工验收后整体淡化 50%：Summer 的 `display / standard / reading` 环境层约为 `8% / 5.15% / 3.05%`；Night 约为 `6.5% / 4% / 2.25%`。卡片材质高光与边缘反射同步减半，月光继续使用偏青绿的珍珠白。
-- 朝窗内部由远景雾层、离屏光源、分束光柱、纸窗遮挡、空气尘埃、页面表面响应和底部水纹反射组成。各层使用约 20–104 秒的不同周期，禁止整体同步移动；纸窗是主体，水纹只出现在视口下缘且不得穿透正文。
-- 环境光只使用原生 CSS、低复杂度内联 SVG 和少量 Pointer Events；光源、光束、松影和星河分别以约 20–68 秒周期缓慢呼吸或漂移，页面越偏向阅读，位移越小。微视差限制在桌面 8px、触摸 4px；页面隐藏时暂停，`prefers-reduced-motion` 下完全静止。
-- 开发比较器位于 `/prototype/acg/lighting/`，以真实 DOM 表面比较三套方案 × 两种环境，并可把当前状态带到首页、音乐页和文章页；比较选择不写入正式偏好。
+- 环境天气只使用原生 CSS、低复杂度内联 SVG 和少量 Pointer Events；周期 45–90 秒、位移数像素，页面隐藏时暂停。`prefers-reduced-motion` 下天气静止，但静态房间仍在。
+- `.environment-lighting` 使用 `transition:persist="environment-lighting"`；Home → Music → 文章通过三根层的 0.65s opacity 交叉，不依赖整页溶解。
+- 开发比较器位于 `/prototype/acg/lighting/`，以 display 行排他比较三套手艺 × 两种环境；链接只有带 `lightingPreview=1` 才能把排他状态带到正式页面，裸 `lightingPreset` 无效且选择不写入正式偏好。
 
 ## 12. Avoid
 
@@ -162,6 +166,7 @@
 - 版权插画作为默认素材
 - Yorushika 官网或 n-buna artwork 的直接复制
 - 为填满页面而虚构内容
+- 把三层文学空间光做成正式站预设选择器，或再次对气氛父级乘 0.5
 
 ## 13. Review Question
 

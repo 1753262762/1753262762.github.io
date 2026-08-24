@@ -24,6 +24,7 @@ import RiverField from '../lighting/RiverField.astro';
     DEFAULT_LIGHTING_REGISTER,
     ENVIRONMENT_STORAGE_KEY,
     isRegister,
+    lightingLiterature,
     lightingPresetIds,
     type EnvironmentMode,
     type LightingPreset,
@@ -59,6 +60,14 @@ import RiverField from '../lighting/RiverField.astro';
 
     document.querySelectorAll<HTMLElement>('[data-environment-season]').forEach((node) => {
       node.textContent = environment === 'summer' ? '夏 / SUMMER' : '夜 / NIGHT';
+    });
+
+    document.querySelectorAll<HTMLElement>('[data-lighting-whisper]').forEach((node) => {
+      const line = node.querySelector<HTMLElement>('.whisper-line');
+      const author = node.querySelector<HTMLElement>('cite');
+      const literary = lightingLiterature['dawn-window'][environment];
+      if (line) line.textContent = literary.line;
+      if (author) author.textContent = literary.author;
     });
   };
 
@@ -167,9 +176,9 @@ import RiverField from '../lighting/RiverField.astro';
 <style is:global>
   .environment-switcher{position:fixed;z-index:75;right:max(14px,env(safe-area-inset-right));bottom:max(14px,env(safe-area-inset-bottom));display:flex;align-items:stretch;gap:7px;color:var(--text);transition:bottom .25s var(--ease),opacity .2s ease}
   .environment-buttons{display:flex;align-items:center;gap:2px;padding:4px;border:1px solid var(--border);border-radius:8px;background:color-mix(in srgb,var(--surface) 88%,transparent);box-shadow:0 12px 36px rgb(var(--lighting-shadow)/.12);backdrop-filter:blur(16px)}.environment-buttons>span{padding:0 6px;color:var(--muted);font:.52rem var(--font-mono);letter-spacing:.08em}.environment-buttons button{display:inline-flex;min-height:44px;align-items:center;gap:5px;padding:0 10px;border:0;border-radius:5px;background:transparent;color:var(--muted);font:600 .58rem var(--font-mono);cursor:pointer}.environment-buttons button i{font:500 .72rem var(--font-serif);font-style:normal}.environment-buttons button[aria-pressed='true']{background:var(--accent-deep);color:#f3fffd}.environment-buttons button:hover:not([aria-pressed='true']){background:color-mix(in srgb,var(--surface-2) 82%,transparent);color:var(--text)}
-  :global(.prototype-acg) .environment-switcher{bottom:76px}
-  :global(.lighting-lab-page) .environment-switcher{display:none}
-  @media(max-width:700px){.environment-switcher{right:max(10px,env(safe-area-inset-right));bottom:calc(78px + env(safe-area-inset-bottom));max-width:calc(100vw - 20px);align-items:flex-end}.environment-buttons>span{display:none}.environment-buttons button{min-width:54px;padding-inline:7px}:global(body:has(.site-player[data-expanded='true'])) .environment-switcher{bottom:calc(154px + env(safe-area-inset-bottom))}:global(body:has(.site-player[data-library-open='true'])) .environment-switcher{opacity:0;pointer-events:none}}
+  .prototype-acg .environment-switcher{bottom:76px}
+  .lighting-lab-page .environment-switcher{display:none}
+  @media(max-width:700px){.environment-switcher{right:max(10px,env(safe-area-inset-right));bottom:calc(78px + env(safe-area-inset-bottom));max-width:calc(100vw - 20px);align-items:flex-end}.environment-buttons>span{display:none}.environment-buttons button{min-width:54px;padding-inline:7px}body:has(.site-player[data-expanded='true']) .environment-switcher{bottom:calc(154px + env(safe-area-inset-bottom))}body:has(.site-player[data-library-open='true']) .environment-switcher{opacity:0;pointer-events:none}}
   @media(max-width:390px){.environment-buttons button{min-width:50px;font-size:.53rem}}
   @media(prefers-reduced-motion:reduce){.environment-switcher{transition:none}}
 </style>
