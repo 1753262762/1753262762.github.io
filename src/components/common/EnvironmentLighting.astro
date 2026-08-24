@@ -142,7 +142,7 @@ import RiverField from '../lighting/RiverField.astro';
       window.addEventListener('pointermove', (event) => {
         if (environmentFrame) cancelAnimationFrame(environmentFrame);
         environmentFrame = requestAnimationFrame(() => {
-          const range = event.pointerType === 'touch' ? 4 : 8;
+          const range = event.pointerType === 'touch' ? 2 : 4;
           const x = ((event.clientX / Math.max(innerWidth, 1)) - .5) * range * 2;
           const y = ((event.clientY / Math.max(innerHeight, 1)) - .5) * range * 1.25;
           root.style.setProperty('--light-shift-x', `${x.toFixed(2)}px`);

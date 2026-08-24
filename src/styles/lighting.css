@@ -2,7 +2,12 @@
   --lighting-dawn-layer: .10;
   --lighting-pine-layer: 0;
   --lighting-river-layer: 0;
+  --lighting-shadow-x: 2px;
+  --lighting-shadow-y: 2px;
 }
+
+html[data-environment='summer'] body { --lighting-shadow-x: 2px; --lighting-shadow-y: 2px; }
+html[data-environment='night'] body { --lighting-shadow-x: -2px; --lighting-shadow-y: 2px; }
 
 .lighting-dawn,
 .lighting-pine,
