@@ -22,7 +22,7 @@
 | `src/content/notes` | 首页短笔记 |
 | `src/components` | 页面与播放器组件 |
 | `src/data/music.ts` | 专辑、歌曲、歌词和播放索引数据 |
-| `src/lib/environment.ts` | Summer / Night 环境状态与“朝窗”正式光影方案 |
+| `src/lib/environment.ts` | Summer / Night 环境状态与“星河”正式光影方案 |
 | `public/media` | 音频、歌词、封面和图片等静态资源 |
 | `dist` | 正式构建产物，可交给 Nginx 提供访问 |
 
@@ -195,7 +195,7 @@ npm run build
 
 当前基线应为：
 
-- 19 个 HTML 页面
+- 21 个 HTML 页面
 - 94 个 MP3
 - 94 个 LRC
 - 7 张专辑封面
@@ -209,17 +209,17 @@ npm run build
 4. 七个专辑折叠组是否能播放正确歌曲。
 5. 播放中切换首页、音乐页和文章页是否保持进度。
 6. 375px 手机宽度下是否存在遮挡或横向溢出。
-7. 检查“朝窗”光影的 Summer / Night 两种状态，以及首页、音乐页和文章页的实际效果。
+7. 检查“星河”光影的 Summer / Night 两种状态，以及首页、音乐页和文章页的实际效果。
 8. 首次访问是否跟随系统亮暗主题；手动切换后刷新和跨页是否保持 `nabunana:environment-v1`。
 9. 光影持续观察至少 30 秒，确认只有极慢呼吸和轻微视差，正文对比度不受影响；减少动画设置下应完全静止。
 
-环境光不使用 Three.js 或 WebGL，也不应出现大于 500KB 的光影专用 JavaScript chunk。正式方案固定为“朝窗”，右下角只保留 Summer / Night 控件，不显示诗句。
+环境光不使用 Three.js 或 WebGL，也不应出现大于 500KB 的光影专用 JavaScript chunk。正式方案固定为“星河”，右下角只保留 Summer / Night 控件，不显示诗句。
 
 可直接检查指定组合：
 
 ```text
-http://127.0.0.1:4321/?lightingPreset=dawn-window&environment=night&lightingPreview=1
-http://127.0.0.1:4321/music/?lightingPreset=dawn-window&environment=summer&lightingPreview=1
+http://127.0.0.1:4321/?lightingPreset=silver-river&environment=night&lightingPreview=1
+http://127.0.0.1:4321/music/?lightingPreset=silver-river&environment=summer&lightingPreview=1
 ```
 
 ## 8. 发布边界
