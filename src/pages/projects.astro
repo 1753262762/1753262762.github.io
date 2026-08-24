@@ -1,0 +1,22 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SiteHeader from '../components/common/SiteHeader.astro';
+import PageHero from '../components/common/PageHero.astro';
+const projects=await getCollection('projects');
+const articleByProject: Record<string,string> = {
+  'Three Body Lab': '/blog/threebody-realtime-pipeline/',
+  'Chat Digest Agent': '/blog/chat-digest-resilience/',
+  'Card PDF Studio': '/blog/tcg-card-pdf-layout/',
+};
+---
+<BaseLayout title="作品 · nabunana" description="正在构建的项目与工程实验。" pageClass="acg-site" lightingRegister="grove">
+  <SiteHeader current="projects" />
+  <PageHero eyebrow="作品 / PROJECTS" title={'做一些东西，\n把问题想明白。'} description="每个项目都是一个正在发生的问题：怎样变得更可靠、更清晰、更接近真正可用。" count={`${projects.length} PROJECTS`} />
+  <main class="project-page container"><section class="project-index">{projects.map((project,index)=><article><span>{String(index+1).padStart(2,'0')}</span><div class="project-main"><small>{project.data.tech.join(' / ')}</small><h2>{project.data.name}</h2><p>{project.data.description}</p><a href={project.data.url || articleByProject[project.data.name] || '/blog/'}>阅读构建记录 ↗</a></div><div class="project-status"><i></i><b>{project.data.status}</b><small>ACTIVE LOG</small></div></article>)}</section></main>
+  <footer class="project-footer"><div class="container"><p>BUILDING / LEARNING / WRITING</p><strong>代码最终会过时，<br />但解决问题的过程值得留下。</strong></div></footer>
+</BaseLayout>
+<style>
+  .project-page{padding:clamp(5rem,9vw,9rem) 0}.project-index{border-top:1px solid var(--border)}.project-index article{display:grid;grid-template-columns:70px 1fr 150px;gap:2rem;padding:3rem 0;border-bottom:1px solid var(--border)}.project-index>article>span{color:var(--accent);font:.65rem var(--font-mono)}.project-main small{color:var(--muted);font:.6rem var(--font-mono);letter-spacing:.08em}.project-main h2{margin:.8rem 0;color:var(--strong);font:500 clamp(2rem,4vw,4.3rem)/1 var(--font-serif);letter-spacing:-.045em}.project-main p{max-width:680px;color:var(--muted)}.project-main a{display:inline-block;margin-top:1rem;color:var(--accent-deep);font-size:.72rem}.project-status{justify-self:end;display:grid;justify-items:end;height:max-content}.project-status i{width:7px;height:7px;margin-bottom:1rem;border-radius:50%;background:var(--accent)}.project-status b{font:.65rem var(--font-mono);color:var(--text)}.project-status small{color:var(--muted);font:.5rem var(--font-mono)}.project-footer{padding:7rem 0 9rem;background:#0a201d;color:#e8f3f1}.project-footer p{color:#64c7bd;font:.6rem var(--font-mono);letter-spacing:.13em}.project-footer strong{display:block;margin-top:2rem;font:500 clamp(2.5rem,5vw,5.5rem)/1 var(--font-serif)}
+  @media(max-width:700px){.project-index article{grid-template-columns:40px 1fr}.project-status{grid-column:2;justify-self:start;justify-items:start}.project-footer strong br{display:none}}
+</style>

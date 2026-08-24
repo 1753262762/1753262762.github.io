@@ -1,0 +1,350 @@
+:root {
+  --light-shift-x: 0px;
+  --light-shift-y: 0px;
+  --lighting-angle: 128deg;
+  --lighting-highlight: 255 214 176;
+  --lighting-shadow: 42 78 72;
+  --lighting-source-x: 12%;
+  --lighting-source-y: 6%;
+  --lighting-core-size: 22vmax;
+  --lighting-material-strength: 5.5%;
+  --lighting-edge-strength: 9%;
+  --lighting-dawn-layer: .10;
+  --lighting-pine-layer: 0;
+  --lighting-river-layer: 0;
+  --lighting-shadow-x: 2px;
+  --lighting-shadow-y: 2px;
+}
+
+.environment-lighting {
+  position: fixed;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 1;
+}
+
+html[data-environment='summer'] body { --lighting-shadow-x: 2px; --lighting-shadow-y: 2px; }
+html[data-environment='night'] body { --lighting-shadow-x: -2px; --lighting-shadow-y: 2px; }
+
+html[data-environment='summer'] body[data-lighting-register='threshold'][data-lighting-intensity='display'] { --lighting-material-strength: 9%; --lighting-edge-strength: 14%; }
+html[data-environment='summer'] body[data-lighting-register='threshold'][data-lighting-intensity='standard'] { --lighting-material-strength: 5.5%; --lighting-edge-strength: 9%; }
+html[data-environment='summer'] body[data-lighting-register='grove'][data-lighting-intensity='standard'] { --lighting-material-strength: 4.5%; --lighting-edge-strength: 7.5%; }
+html[data-environment='summer'] body[data-lighting-register='field'][data-lighting-intensity='display'] { --lighting-material-strength: 7%; --lighting-edge-strength: 11%; }
+html[data-environment='summer'] body[data-lighting-register='quiet'][data-lighting-intensity='reading'] { --lighting-material-strength: 3%; --lighting-edge-strength: 5.5%; }
+html[data-environment='night'] body[data-lighting-register='threshold'][data-lighting-intensity='display'] { --lighting-material-strength: 8%; --lighting-edge-strength: 12%; }
+html[data-environment='night'] body[data-lighting-register='threshold'][data-lighting-intensity='standard'] { --lighting-material-strength: 5%; --lighting-edge-strength: 8%; }
+html[data-environment='night'] body[data-lighting-register='grove'][data-lighting-intensity='standard'] { --lighting-material-strength: 4%; --lighting-edge-strength: 7%; }
+html[data-environment='night'] body[data-lighting-register='field'][data-lighting-intensity='display'] { --lighting-material-strength: 7.5%; --lighting-edge-strength: 11%; }
+html[data-environment='night'] body[data-lighting-register='quiet'][data-lighting-intensity='reading'] { --lighting-material-strength: 2.5%; --lighting-edge-strength: 5%; }
+
+html[data-environment='summer'][data-lighting-preset='dawn-window'] body[data-lighting-register='lab'] { --lighting-material-strength: 9%; --lighting-edge-strength: 14%; }
+html[data-environment='summer'][data-lighting-preset='pine-shadow'] body[data-lighting-register='lab'] { --lighting-material-strength: 7%; --lighting-edge-strength: 11%; }
+html[data-environment='summer'][data-lighting-preset='silver-river'] body[data-lighting-register='lab'] { --lighting-material-strength: 7%; --lighting-edge-strength: 11%; }
+html[data-environment='night'][data-lighting-preset='dawn-window'] body[data-lighting-register='lab'] { --lighting-material-strength: 8%; --lighting-edge-strength: 12%; }
+html[data-environment='night'][data-lighting-preset='pine-shadow'] body[data-lighting-register='lab'] { --lighting-material-strength: 6%; --lighting-edge-strength: 10%; }
+html[data-environment='night'][data-lighting-preset='silver-river'] body[data-lighting-register='lab'] { --lighting-material-strength: 7.5%; --lighting-edge-strength: 11%; }
+
+html[data-environment] body[data-lighting-register] :where(.currently-grid article,.editorial-list>a,.notes-row article,.project-list article,.watching-grid article,.writing-list>a,.project-index article,.identity-grid article,.music-album-cover,.listening-note,.archive-rows article,.note-list a,.future-grid article) {
+  background-image: linear-gradient(var(--lighting-angle), color-mix(in srgb, rgb(var(--lighting-highlight)) var(--lighting-material-strength), transparent), transparent 38%);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, rgb(var(--lighting-highlight)) var(--lighting-edge-strength), transparent), inset 1px 0 0 color-mix(in srgb, rgb(var(--lighting-highlight)) calc(var(--lighting-edge-strength) * .34), transparent), 0 18px 50px rgb(var(--lighting-shadow) / .08);
+}
+
+.lighting-dawn,
+.lighting-pine,
+.lighting-river {
+  position: absolute;
+  inset: 0;
+  transition: opacity .65s var(--ease);
+}
+
+.lighting-dawn { opacity: var(--lighting-dawn-layer); }
+.lighting-pine { opacity: var(--lighting-pine-layer); }
+.lighting-river { opacity: var(--lighting-river-layer); }
+
+html[data-environment='summer'] body[data-lighting-register='threshold'],
+html[data-environment='summer'] body[data-lighting-register='quiet'],
+html[data-environment='summer'][data-lighting-preset='dawn-window'] body[data-lighting-register='lab'] {
+  --lighting-angle: 128deg;
+  --lighting-highlight: 255 214 176;
+  --lighting-shadow: 42 78 72;
+  --lighting-source-x: 12%;
+  --lighting-source-y: 6%;
+  --lighting-core-size: 22vmax;
+}
+
+html[data-environment='night'] body[data-lighting-register='threshold'],
+html[data-environment='night'] body[data-lighting-register='quiet'],
+html[data-environment='night'][data-lighting-preset='dawn-window'] body[data-lighting-register='lab'] {
+  --lighting-angle: 228deg;
+  --lighting-highlight: 210 228 226;
+  --lighting-shadow: 10 34 32;
+  --lighting-source-x: 86%;
+  --lighting-source-y: 7%;
+  --lighting-core-size: 22vmax;
+}
+
+.aperture-wash,
+.aperture-core,
+.paper-screen,
+.aperture-dust,
+.aperture-water { position: absolute; transition: opacity .65s var(--ease); }
+
+.aperture-wash {
+  inset: -8%;
+  background: radial-gradient(ellipse at var(--lighting-source-x) var(--lighting-source-y), rgb(var(--lighting-highlight) / .96), rgb(var(--lighting-highlight) / .08) 28%, transparent 62%), linear-gradient(var(--lighting-angle), rgb(var(--lighting-highlight) / .18), transparent 36%, rgb(var(--lighting-shadow) / .04));
+  mask-image: linear-gradient(128deg, #000 0 34%, rgb(0 0 0 / .5) 58%, transparent 86%);
+  transform: translate3d(calc(var(--light-shift-x) * .28), calc(var(--light-shift-y) * .28), 0);
+  animation: aperture-wash-weather 67s ease-in-out infinite alternate;
+}
+
+.aperture-core {
+  left: var(--lighting-source-x); top: var(--lighting-source-y);
+  width: var(--lighting-core-size); height: calc(var(--lighting-core-size) * .82);
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgb(var(--lighting-highlight) / 1) 0, rgb(var(--lighting-highlight) / .72) 24%, rgb(var(--lighting-highlight) / .16) 58%, transparent 78%);
+  mask-image: linear-gradient(128deg, #000 0 42%, transparent 92%);
+  transform: translate3d(calc(-50% + var(--light-shift-x)), calc(-50% + var(--light-shift-y)), 0);
+  transform-origin: center;
+  animation: aperture-core-weather 54s ease-in-out infinite alternate;
+}
+
+.paper-screen {
+  inset: -7% -4%; width: 108%; height: 114%; overflow: visible;
+  color: rgb(var(--lighting-shadow) / 1); stroke: currentColor; stroke-linecap: round;
+  transform: translate3d(var(--light-shift-x), var(--light-shift-y), 0);
+  transform-origin: 50% 0;
+  animation: aperture-screen-weather 82s ease-in-out infinite alternate;
+}
+.paper-screen line { transition: opacity .65s var(--ease), stroke-width .65s var(--ease); }
+.paper-screen .mullion-1 { stroke-width: 1.6vmax; }
+.paper-screen .mullion-2 { stroke-width: 2.2vmax; }
+.paper-screen .mullion-3 { stroke-width: 1.3vmax; }
+.paper-screen .crossbar-1 { stroke-width: .9vmax; }
+.paper-screen .crossbar-2 { stroke-width: .7vmax; }
+
+.aperture-dust {
+  inset: 3% 46% 38% 2%;
+  transform: translate3d(calc(var(--light-shift-x) * .7), calc(var(--light-shift-y) * .7), 0) rotate(-8deg);
+  animation: aperture-dust-weather 68s ease-in-out infinite alternate;
+}
+.aperture-dust i { position: absolute; width: 2px; height: 2px; border-radius: 50%; background: rgb(var(--lighting-highlight) / .82); }
+.aperture-dust i:nth-child(1) { left: 8%; top: 18%; }
+.aperture-dust i:nth-child(2) { left: 21%; top: 54%; width: 1px; height: 1px; }
+.aperture-dust i:nth-child(3) { left: 35%; top: 31%; }
+.aperture-dust i:nth-child(4) { left: 49%; top: 72%; width: 1px; height: 1px; }
+.aperture-dust i:nth-child(5) { left: 62%; top: 24%; }
+.aperture-dust i:nth-child(6) { left: 76%; top: 61%; width: 1px; height: 1px; }
+.aperture-dust i:nth-child(7) { left: 91%; top: 38%; }
+
+.aperture-water {
+  left: -5%; bottom: -2%; width: 110%; height: 18vh; overflow: visible;
+  color: rgb(var(--lighting-highlight) / .72);
+  animation: aperture-water-weather 58s ease-in-out infinite alternate;
+}
+.aperture-water path { fill: none; stroke: currentColor; stroke-width: 1.1; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.aperture-water path:nth-child(2) { opacity: .66; stroke-width: .8; }
+.aperture-water path:nth-child(3) { opacity: .42; }
+
+html[data-environment='summer'] .aperture-core { opacity: .45; }
+html[data-environment='night'] .aperture-core { opacity: 0; }
+html[data-environment='summer'] .aperture-wash { opacity: 1; }
+html[data-environment='night'] .aperture-wash { opacity: .40; background: radial-gradient(ellipse 76% 34% at 86% 7%, rgb(var(--lighting-highlight) / 1), rgb(var(--lighting-highlight) / .42) 34%, transparent 74%); mask-image: linear-gradient(228deg, #000 0 38%, rgb(0 0 0 / .58) 62%, transparent 92%); }
+html[data-environment='summer'] .paper-screen { opacity: .36; }
+html[data-environment='night'] .paper-screen { opacity: .30; }
+html[data-environment='summer'] .aperture-dust { opacity: .28; }
+html[data-environment='night'] .aperture-dust { opacity: 0; }
+html[data-environment='summer'] .aperture-water { opacity: 0; }
+html[data-environment='night'] .aperture-water { opacity: .22; }
+
+body[data-lighting-intensity='standard'] .aperture-core { opacity: .28; }
+html[data-environment='night'] body[data-lighting-intensity='standard'] .aperture-core { opacity: 0; }
+body[data-lighting-intensity='standard'] .paper-screen { opacity: .26; }
+html[data-environment='night'] body[data-lighting-intensity='standard'] .aperture-wash { opacity: .26; }
+body[data-lighting-intensity='standard'] .aperture-dust,
+body[data-lighting-intensity='standard'] .aperture-water { opacity: 0; }
+
+body[data-lighting-register='grove'] .aperture-core,
+body[data-lighting-register='field'] .aperture-core,
+body[data-lighting-register='quiet'] .aperture-core,
+body[data-lighting-register='grove'] .aperture-dust,
+body[data-lighting-register='field'] .aperture-dust,
+body[data-lighting-register='quiet'] .aperture-dust,
+body[data-lighting-register='grove'] .aperture-water,
+body[data-lighting-register='field'] .aperture-water,
+body[data-lighting-register='quiet'] .aperture-water,
+body[data-lighting-register='grove'] .mullion-2,
+body[data-lighting-register='field'] .mullion-2,
+body[data-lighting-register='quiet'] .mullion-2,
+body[data-lighting-register='grove'] .crossbar-2,
+body[data-lighting-register='field'] .crossbar-2,
+body[data-lighting-register='quiet'] .crossbar-2 { opacity: 0; }
+body[data-lighting-register='grove'] .paper-screen,
+body[data-lighting-register='field'] .paper-screen { opacity: .22; }
+body[data-lighting-register='grove'] .crossbar-1,
+body[data-lighting-register='field'] .crossbar-1 { opacity: .5; }
+body[data-lighting-register='quiet'] .paper-screen { opacity: .16; }
+body[data-lighting-register='quiet'] .crossbar-1,
+body[data-lighting-register='quiet'] .crossbar-2 { opacity: 0; }
+body[data-lighting-register='quiet'] .aperture-wash { opacity: .72; }
+
+@keyframes aperture-wash-weather { 0% { translate: -3px -2px; } 100% { translate: 3px 2px; } }
+@keyframes aperture-screen-weather { 0% { translate: -4px -2px; rotate: -.3deg; } 100% { translate: 5px 3px; rotate: .3deg; } }
+@keyframes aperture-core-weather { 0% { scale: .98; } 100% { scale: 1.03; } }
+@keyframes aperture-dust-weather { 0% { translate: -7px 6px; } 100% { translate: 8px -6px; } }
+@keyframes aperture-water-weather { 0% { translate: -8px 2px; } 100% { translate: 8px -2px; } }
+
+html[data-environment='summer'] body[data-lighting-register='grove'],
+html[data-environment='summer'][data-lighting-preset='pine-shadow'] body[data-lighting-register='lab'] { --lighting-angle: 148deg; --lighting-highlight: 255 236 196; --lighting-shadow: 38 68 52; --lighting-source-x: 24%; --lighting-source-y: 0%; }
+html[data-environment='night'] body[data-lighting-register='grove'],
+html[data-environment='night'][data-lighting-preset='pine-shadow'] body[data-lighting-register='lab'] { --lighting-angle: 212deg; --lighting-highlight: 206 228 232; --lighting-shadow: 4 22 26; --lighting-source-x: 76%; --lighting-source-y: 8%; }
+
+.komorebi-field,
+.komorebi-edge { position: absolute; inset: 0; transition: opacity .65s var(--ease); }
+.komorebi-field { width: 100%; height: 100%; overflow: visible; }
+.komorebi-summer,
+.komorebi-night { opacity: 0; transition: opacity .65s var(--ease); }
+.komorebi-summer ellipse { fill: rgb(var(--lighting-highlight) / 1); }
+.komorebi-summer g g ellipse + ellipse { opacity: .72; }
+.komorebi-night { fill: rgb(var(--lighting-shadow) / .16); transform-origin: 82% 24%; animation: pine-needles-weather 64s ease-in-out infinite alternate; }
+.komorebi-group { transform-origin: center; }
+.komorebi-group.group-a { animation: komorebi-weather-a 48s ease-in-out infinite alternate; }
+.komorebi-group.group-b { animation: komorebi-weather-b 61s ease-in-out infinite alternate; }
+.komorebi-group.group-c { animation: komorebi-weather-c 73s ease-in-out infinite alternate; }
+.komorebi-edge { bottom: auto; height: 18%; background: linear-gradient(180deg, rgb(var(--lighting-shadow) / .06), transparent); opacity: 0; }
+html[data-environment='summer'] body[data-lighting-register='grove'] .komorebi-summer,
+html[data-environment='summer'][data-lighting-preset='pine-shadow'] body[data-lighting-register='lab'] .komorebi-summer,
+html[data-environment='night'] body[data-lighting-register='grove'] .komorebi-night,
+html[data-environment='night'][data-lighting-preset='pine-shadow'] body[data-lighting-register='lab'] .komorebi-night { opacity: 1; }
+body[data-lighting-register='grove'] .komorebi-edge,
+html[data-lighting-preset='pine-shadow'] body[data-lighting-register='lab'] .komorebi-edge { opacity: 1; }
+
+html[data-environment] body[data-lighting-register='threshold'] :is(.currently-grid article,.editorial-list>a,.notes-row article,.project-list article,.watching-grid article) { position: relative; overflow: visible; }
+html[data-environment] body[data-lighting-register='threshold'] :is(.currently-grid article,.editorial-list>a,.notes-row article,.project-list article,.watching-grid article)::after {
+  content: ''; position: absolute; top: -10px; right: 8%; width: 28px; height: 18px; pointer-events: none;
+  background: radial-gradient(ellipse at 40% 40%, rgb(var(--lighting-highlight) / var(--lighting-pine-layer)), transparent 70%);
+  transform: rotate(-18deg);
+}
+
+body[data-lighting-intensity='reading'] .environment-lighting {
+  --reading-gutter: 40px; --reading-column: 720px; --reading-toc: 180px; --reading-gap: 5rem;
+  --reading-hole: calc(var(--reading-column) + var(--reading-gap) + var(--reading-toc));
+  --reading-container: min(var(--container), calc(100vw - var(--reading-gutter)));
+  --reading-inset: max(0px, calc((100vw - var(--reading-container)) / 2 + (var(--reading-container) - var(--reading-hole)) / 2));
+  mask-image: linear-gradient(90deg, #000 0, #000 max(0px, calc(var(--reading-inset) - 40px)), transparent calc(var(--reading-inset) + 8px), transparent calc(var(--reading-inset) + var(--reading-hole) - 8px), #000 calc(var(--reading-inset) + var(--reading-hole) + 40px), #000 100%);
+}
+
+@keyframes komorebi-weather-a { 0% { translate: -4px -2px; } 100% { translate: 4px 2px; } }
+@keyframes komorebi-weather-b { 0% { translate: 3px -2px; } 100% { translate: -3px 2px; } }
+@keyframes komorebi-weather-c { 0% { translate: -5px 2px; } 100% { translate: 5px -2px; } }
+@keyframes pine-needles-weather { 0% { translate: -3px -1px; rotate: -.3deg; } 100% { translate: 3px 1px; rotate: .3deg; } }
+
+@media (max-width: 900px) { body[data-lighting-intensity='reading'] .environment-lighting { --reading-hole: var(--reading-column); } }
+@media (max-width: 800px) { body[data-lighting-intensity='reading'] .environment-lighting { mask-image: none; } }
+
+html[data-environment='summer'] body[data-lighting-register='field'],
+html[data-environment='summer'][data-lighting-preset='silver-river'] body[data-lighting-register='lab'] { --lighting-angle: 118deg; --lighting-highlight: 255 218 186; --lighting-shadow: 62 58 78; --lighting-source-x: 18%; --lighting-source-y: 22%; }
+html[data-environment='night'] body[data-lighting-register='field'],
+html[data-environment='night'][data-lighting-preset='silver-river'] body[data-lighting-register='lab'] { --lighting-angle: 198deg; --lighting-highlight: 228 236 242; --lighting-shadow: 6 16 28; --lighting-source-x: 58%; --lighting-source-y: 32%; }
+
+.field-wash,
+.field-halo,
+.galactic-mist { position: absolute; transition: opacity .65s var(--ease); }
+.field-wash {
+  inset: -4% -6% 40%;
+  background: linear-gradient(180deg, rgb(177 151 197 / .36) 0%, rgb(255 218 186 / 1) 28%, rgb(255 218 186 / .36) 58%, transparent 70%);
+  transform: translate3d(calc(var(--light-shift-x) * .55), calc(var(--light-shift-y) * .4), 0);
+  animation: river-dawn-weather 76s ease-in-out infinite alternate;
+}
+.field-halo {
+  left: 22%; top: 28%; width: 28vmax; height: 19vmax;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgb(var(--lighting-highlight) / 1), rgb(var(--lighting-highlight) / .46) 32%, transparent 72%);
+  transform: translate3d(calc(-50% + var(--light-shift-x)), calc(-50% + var(--light-shift-y)), 0);
+  transform-origin: center;
+  animation: river-halo-weather 64s ease-in-out infinite alternate;
+}
+.galactic-mist {
+  inset: -12% -14% 43%;
+  background: linear-gradient(163deg, transparent 12%, rgb(228 236 242 / .28) 25%, rgb(228 236 242 / 1) 42%, rgb(228 236 242 / .68) 53%, transparent 72%);
+  transform: translate3d(calc(var(--light-shift-x) * .65), calc(var(--light-shift-y) * .45), 0) rotate(-3deg);
+  transform-origin: 58% 32%;
+  animation: river-mist-weather 90s ease-in-out infinite alternate;
+}
+html[data-environment='summer'] .field-wash { opacity: 1; }
+html[data-environment='summer'] .field-halo { opacity: .50; }
+html[data-environment='summer'] .galactic-mist { opacity: 0; }
+html[data-environment='night'] .field-wash { opacity: 0; }
+html[data-environment='night'] .field-halo { opacity: .45; background: radial-gradient(ellipse 72% 38%, rgb(228 236 242 / 1), rgb(228 236 242 / .34) 38%, transparent 74%); }
+html[data-environment='night'] .galactic-mist { opacity: 1; }
+
+html[data-environment='night'] body[data-lighting-register='field'] .site-player { box-shadow: inset 0 1px 0 rgb(var(--lighting-highlight) / .11), 0 18px 54px rgb(0 12 10 / 34%); }
+
+@keyframes river-dawn-weather { 0% { translate: -2% -1%; } 100% { translate: 2% 1%; } }
+@keyframes river-halo-weather { 0% { scale: .985; } 100% { scale: 1.025; } }
+@keyframes river-mist-weather { 0% { translate: -6px -2px; scale: .995; } 100% { translate: 6px 2px; scale: 1.012; } }
+
+html.lighting-paused .environment-lighting * { animation-play-state: paused !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .environment-lighting *,
+  .lighting-dawn,
+  .lighting-pine,
+  .lighting-river { animation: none !important; transition: none !important; }
+}
+
+html[data-environment='summer'] body[data-lighting-register='threshold'][data-lighting-intensity='display'] { --lighting-dawn-layer: .22; --lighting-pine-layer: .08; --lighting-river-layer: .05; }
+html[data-environment='summer'] body[data-lighting-register='threshold'][data-lighting-intensity='standard'] { --lighting-dawn-layer: .16; --lighting-pine-layer: 0; --lighting-river-layer: 0; }
+html[data-environment='summer'] body[data-lighting-register='grove'][data-lighting-intensity='standard'] { --lighting-dawn-layer: .12; --lighting-pine-layer: .14; --lighting-river-layer: 0; }
+html[data-environment='summer'] body[data-lighting-register='field'][data-lighting-intensity='display'] { --lighting-dawn-layer: .10; --lighting-pine-layer: 0; --lighting-river-layer: .22; }
+html[data-environment='summer'] body[data-lighting-register='quiet'][data-lighting-intensity='reading'] { --lighting-dawn-layer: .08; --lighting-pine-layer: 0; --lighting-river-layer: 0; }
+
+html[data-environment='night'] body[data-lighting-register='threshold'][data-lighting-intensity='display'] { --lighting-dawn-layer: .18; --lighting-pine-layer: .06; --lighting-river-layer: .04; }
+html[data-environment='night'] body[data-lighting-register='threshold'][data-lighting-intensity='standard'] { --lighting-dawn-layer: .14; --lighting-pine-layer: 0; --lighting-river-layer: 0; }
+html[data-environment='night'] body[data-lighting-register='grove'][data-lighting-intensity='standard'] { --lighting-dawn-layer: .10; --lighting-pine-layer: .12; --lighting-river-layer: 0; }
+html[data-environment='night'] body[data-lighting-register='field'][data-lighting-intensity='display'] { --lighting-dawn-layer: .08; --lighting-pine-layer: 0; --lighting-river-layer: .18; }
+html[data-environment='night'] body[data-lighting-register='quiet'][data-lighting-intensity='reading'] { --lighting-dawn-layer: .07; --lighting-pine-layer: 0; --lighting-river-layer: 0; }
+
+html[data-environment='summer'][data-lighting-preset='dawn-window'] body[data-lighting-register='lab'] { --lighting-dawn-layer: .22; --lighting-pine-layer: 0; --lighting-river-layer: 0; }
+html[data-environment='summer'][data-lighting-preset='pine-shadow'] body[data-lighting-register='lab'] { --lighting-dawn-layer: 0; --lighting-pine-layer: .22; --lighting-river-layer: 0; }
+html[data-environment='summer'][data-lighting-preset='silver-river'] body[data-lighting-register='lab'] { --lighting-dawn-layer: 0; --lighting-pine-layer: 0; --lighting-river-layer: .22; }
+html[data-environment='night'][data-lighting-preset='dawn-window'] body[data-lighting-register='lab'] { --lighting-dawn-layer: .18; --lighting-pine-layer: 0; --lighting-river-layer: 0; }
+html[data-environment='night'][data-lighting-preset='pine-shadow'] body[data-lighting-register='lab'] { --lighting-dawn-layer: 0; --lighting-pine-layer: .18; --lighting-river-layer: 0; }
+html[data-environment='night'][data-lighting-preset='silver-river'] body[data-lighting-register='lab'] { --lighting-dawn-layer: 0; --lighting-pine-layer: 0; --lighting-river-layer: .18; }
+
+html[data-environment='summer'] body[data-lighting-register='quiet'][data-lighting-intensity='standard'] { --lighting-dawn-layer: .10; --lighting-pine-layer: 0; --lighting-river-layer: 0; }
+html[data-environment='night'] body[data-lighting-register='quiet'][data-lighting-intensity='standard'] { --lighting-dawn-layer: .08; --lighting-pine-layer: 0; --lighting-river-layer: 0; }
+
+/* The accepted production atmosphere is Silver River. Registers keep the
+   route depth model, while display/standard/reading control its amplitude. */
+html[data-lighting-preset='silver-river'][data-environment='summer'] body:not([class*='prototype-']):not([data-lighting-register='lab']) {
+  --lighting-angle: 118deg;
+  --lighting-highlight: 255 218 186;
+  --lighting-shadow: 62 58 78;
+  --lighting-source-x: 18%;
+  --lighting-source-y: 22%;
+  --lighting-dawn-layer: 0;
+  --lighting-pine-layer: 0;
+}
+html[data-lighting-preset='silver-river'][data-environment='night'] body:not([class*='prototype-']):not([data-lighting-register='lab']) {
+  --lighting-angle: 198deg;
+  --lighting-highlight: 228 236 242;
+  --lighting-shadow: 6 16 28;
+  --lighting-source-x: 58%;
+  --lighting-source-y: 32%;
+  --lighting-dawn-layer: 0;
+  --lighting-pine-layer: 0;
+}
+html[data-lighting-preset='silver-river'][data-environment='summer'] body[data-lighting-intensity='display']:not([class*='prototype-']) { --lighting-river-layer: .22; }
+html[data-lighting-preset='silver-river'][data-environment='summer'] body[data-lighting-intensity='standard']:not([class*='prototype-']) { --lighting-river-layer: .14; }
+html[data-lighting-preset='silver-river'][data-environment='summer'] body[data-lighting-intensity='reading']:not([class*='prototype-']) { --lighting-river-layer: .08; }
+html[data-lighting-preset='silver-river'][data-environment='night'] body[data-lighting-intensity='display']:not([class*='prototype-']) { --lighting-river-layer: .18; }
+html[data-lighting-preset='silver-river'][data-environment='night'] body[data-lighting-intensity='standard']:not([class*='prototype-']) { --lighting-river-layer: .12; }
+html[data-lighting-preset='silver-river'][data-environment='night'] body[data-lighting-intensity='reading']:not([class*='prototype-']) { --lighting-river-layer: .07; }
+
+@media (prefers-reduced-motion: reduce) {
+  .lighting-dawn,
+  .lighting-pine,
+  .lighting-river { transition: none; }
+}

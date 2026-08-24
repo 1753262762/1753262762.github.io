@@ -1,0 +1,38 @@
+---
+interface Props { variant: 'minimal' | 'acg' | 'product' | 'dev'; }
+const { variant } = Astro.props;
+const labels = variant === 'dev'
+  ? [['~/home', '#top'], ['~/writing', '#writing'], ['~/projects', '#projects'], ['~/about', '#about']]
+  : variant === 'acg'
+    ? [['Home', '#top'], ['文章 / Writing', '#writing'], ['音楽 / Music', '#music'], ['作品 / Projects', '#projects'], ['ACG', '#watching'], ['About', '#about']]
+    : [['Home', '#top'], ['Writing', '#writing'], ['Projects', '#projects'], ['About', '#about']];
+---
+<header class:list={['prototype-header', `header-${variant}`]}>
+  <a class="prototype-brand" href="/prototype/" aria-label="返回设计实验室">W<span>·</span></a>
+  <nav aria-label="页面导航">{labels.map(([label, href]) => <a href={href}>{label}</a>)}</nav>
+  <div class="header-actions">
+    <button type="button" data-search-open aria-label="打开搜索">⌕ <kbd>⌘K</kbd></button>
+  </div>
+</header>
+
+<style>
+  .prototype-header { width: min(calc(100% - 48px), 1240px); height: 76px; margin: auto; display: flex; align-items: center; justify-content: space-between; gap: 2rem; position: relative; z-index: 10; }
+  .prototype-brand { font-weight: 850; font-size: 1.35rem; letter-spacing: -.08em; }
+  .prototype-brand span { color: var(--accent); }
+  nav { display: flex; gap: 1.6rem; align-items: center; }
+  nav a { color: var(--muted); font-size: .86rem; transition: color .2s ease; }
+  nav a:hover { color: var(--text); }
+  .header-actions { display: flex; gap: .5rem; }
+  button { min-height: 40px; border: 1px solid var(--border); border-radius: 999px; padding: .55rem .75rem; background: transparent; color: var(--text); cursor: pointer; }
+  kbd { margin-left: .35rem; color: var(--muted); font: .7rem var(--font-mono); }
+  @media (max-width: 760px) {
+    .prototype-header { width: calc(100% - 28px); height: 64px; }
+    nav { display: none; }
+    kbd { display: none; }
+  }
+  :global(.prototype-acg) .prototype-header { height: 72px; border-bottom: 1px solid var(--border); }
+  :global(.prototype-acg) .prototype-brand { display: inline-flex; align-items: center; gap: .45rem; font-family: var(--font-serif); font-weight: 600; letter-spacing: -.04em; }
+  :global(.prototype-acg) .prototype-brand::after { content: ''; width: 22px; height: 8px; border-top: 1px solid var(--accent); border-radius: 50%; transform: rotate(-8deg); opacity: .75; }
+  :global(.prototype-acg) nav a { font-size: .73rem; letter-spacing: .02em; }
+  :global(.prototype-acg) button { border-radius: 8px; background: color-mix(in srgb, var(--surface) 84%, transparent); }
+</style>
