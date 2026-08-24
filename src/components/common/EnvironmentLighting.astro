@@ -191,11 +191,8 @@ import RiverField from '../lighting/RiverField.astro';
 
   .environment-lighting{position:fixed;z-index:0;inset:0;overflow:hidden;pointer-events:none;opacity:var(--lighting-layer-opacity);transition:opacity .55s ease}
   .lighting-drift{position:absolute;inset:-8%;animation:lighting-breathe var(--lighting-drift-duration) ease-in-out infinite alternate;transform-origin:center;will-change:translate,scale}
-  .lighting-foliage{position:absolute;inset:-8% -5% auto auto;width:min(78vw,980px);height:auto;color:rgb(var(--lighting-shadow)/.9);fill:currentColor;stroke:currentColor;stroke-width:10;stroke-linecap:round;opacity:0;transform:translate3d(var(--light-shift-x),var(--light-shift-y),0) rotate(-5deg);transform-origin:70% 10%;transition:opacity .8s ease,color .8s ease;animation:foliage-drift var(--lighting-foliage-duration) ease-in-out infinite alternate;will-change:translate,rotate}.foliage-needles{opacity:.42}.foliage-branch{fill:none;opacity:.48}
   .lighting-galaxy{position:absolute;left:5%;top:18%;width:112%;height:36%;border-radius:50%;background:linear-gradient(180deg,transparent,rgb(var(--lighting-highlight)/.3) 48%,rgb(159 160 205/.12) 62%,transparent);opacity:0;transform:translate3d(var(--light-shift-x),var(--light-shift-y),0) rotate(-12deg);transition:opacity .8s ease,background .8s ease;animation:galaxy-drift var(--lighting-drift-duration) ease-in-out infinite alternate;will-change:translate,scale}
   .lighting-stars{position:absolute;inset:0;background-image:radial-gradient(circle at 11% 18%,rgb(var(--lighting-highlight)/.72) 0 1px,transparent 1.6px),radial-gradient(circle at 34% 9%,rgb(var(--lighting-highlight)/.55) 0 1px,transparent 1.7px),radial-gradient(circle at 62% 21%,rgb(var(--lighting-highlight)/.62) 0 1px,transparent 1.8px),radial-gradient(circle at 83% 13%,rgb(var(--lighting-highlight)/.48) 0 1px,transparent 1.7px),radial-gradient(circle at 72% 41%,rgb(var(--lighting-highlight)/.4) 0 1px,transparent 1.8px);opacity:0;transform:translate3d(calc(var(--light-shift-x)*.5),calc(var(--light-shift-y)*.5),0);transition:opacity .8s ease;animation:stars-drift var(--lighting-drift-duration) linear infinite alternate;will-change:background-position}
-  :global(:root[data-lighting-preset='pine-shadow']) .lighting-foliage{opacity:.38}
-  :global(:root[data-lighting-preset='pine-shadow'][data-environment='night']) .lighting-foliage{opacity:.28}
   :global(:root[data-lighting-preset='silver-river']) .lighting-galaxy{opacity:.72}
   :global(:root[data-lighting-preset='silver-river'][data-environment='night']) .lighting-stars{opacity:.8}
   :global(:root[data-lighting-preset='silver-river'][data-environment='summer']) .lighting-stars{opacity:.16}
@@ -209,10 +206,9 @@ import RiverField from '../lighting/RiverField.astro';
   :global(:root.lighting-paused) .environment-lighting *{animation-play-state:paused!important}
 
   @keyframes lighting-breathe{0%{scale:1;translate:var(--lighting-drift-start-x) var(--lighting-drift-start-y)}50%{scale:1.022}100%{scale:1.01;translate:var(--lighting-drift-end-x) var(--lighting-drift-end-y)}}
-  @keyframes foliage-drift{0%{rotate:-5.2deg;translate:calc(var(--lighting-secondary-shift) * -.65) -4px}100%{rotate:-4.1deg;translate:var(--lighting-secondary-shift) 6px}}
   @keyframes galaxy-drift{0%{translate:calc(var(--lighting-secondary-shift) * -.7) -3px;scale:.995}100%{translate:var(--lighting-secondary-shift) 7px;scale:1.018}}
   @keyframes stars-drift{0%{background-position:0 0}100%{background-position:var(--lighting-secondary-shift) calc(var(--lighting-secondary-shift) * .55)}}
   @media(max-width:700px){.environment-switcher{right:max(10px,env(safe-area-inset-right));bottom:calc(78px + env(safe-area-inset-bottom));max-width:calc(100vw - 20px);align-items:flex-end}.environment-buttons>span{display:none}.environment-buttons button{min-width:54px;padding-inline:7px}:global(body:has(.site-player[data-expanded='true'])) .environment-switcher{bottom:calc(154px + env(safe-area-inset-bottom))}:global(body:has(.site-player[data-library-open='true'])) .environment-switcher{opacity:0;pointer-events:none}}
   @media(max-width:390px){.environment-buttons button{min-width:50px;font-size:.53rem}}
-  @media(prefers-reduced-motion:reduce){.environment-lighting *{animation:none!important;transition:none!important}.lighting-drift{transform:none}.lighting-foliage{transform:rotate(-5deg)}.environment-switcher{transition:none}}
+  @media(prefers-reduced-motion:reduce){.environment-lighting *{animation:none!important;transition:none!important}.lighting-drift{transform:none}.environment-switcher{transition:none}}
 </style>

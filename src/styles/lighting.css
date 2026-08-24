@@ -148,6 +148,54 @@ body[data-lighting-register='quiet'] .aperture-wash { opacity: .72; }
 @keyframes aperture-dust-weather { 0% { translate: -7px 6px; } 100% { translate: 8px -6px; } }
 @keyframes aperture-water-weather { 0% { translate: -8px 2px; } 100% { translate: 8px -2px; } }
 
+html[data-environment='summer'] body[data-lighting-register='grove'],
+html[data-environment='summer'][data-lighting-preset='pine-shadow'] body[data-lighting-register='lab'] { --lighting-angle: 148deg; --lighting-highlight: 255 236 196; --lighting-shadow: 38 68 52; --lighting-source-x: 24%; --lighting-source-y: 0%; }
+html[data-environment='night'] body[data-lighting-register='grove'],
+html[data-environment='night'][data-lighting-preset='pine-shadow'] body[data-lighting-register='lab'] { --lighting-angle: 212deg; --lighting-highlight: 206 228 232; --lighting-shadow: 4 22 26; --lighting-source-x: 76%; --lighting-source-y: 8%; }
+
+.komorebi-field,
+.komorebi-edge { position: absolute; inset: 0; transition: opacity .65s var(--ease); }
+.komorebi-field { width: 100%; height: 100%; overflow: visible; }
+.komorebi-summer,
+.komorebi-night { opacity: 0; transition: opacity .65s var(--ease); }
+.komorebi-summer ellipse { fill: rgb(var(--lighting-highlight) / 1); }
+.komorebi-summer g g ellipse + ellipse { opacity: .72; }
+.komorebi-night { fill: rgb(var(--lighting-shadow) / .16); transform-origin: 82% 24%; animation: pine-needles-weather 64s ease-in-out infinite alternate; }
+.komorebi-group { transform-origin: center; }
+.komorebi-group.group-a { animation: komorebi-weather-a 48s ease-in-out infinite alternate; }
+.komorebi-group.group-b { animation: komorebi-weather-b 61s ease-in-out infinite alternate; }
+.komorebi-group.group-c { animation: komorebi-weather-c 73s ease-in-out infinite alternate; }
+.komorebi-edge { bottom: auto; height: 18%; background: linear-gradient(180deg, rgb(var(--lighting-shadow) / .06), transparent); opacity: 0; }
+html[data-environment='summer'] body[data-lighting-register='grove'] .komorebi-summer,
+html[data-environment='summer'][data-lighting-preset='pine-shadow'] body[data-lighting-register='lab'] .komorebi-summer,
+html[data-environment='night'] body[data-lighting-register='grove'] .komorebi-night,
+html[data-environment='night'][data-lighting-preset='pine-shadow'] body[data-lighting-register='lab'] .komorebi-night { opacity: 1; }
+body[data-lighting-register='grove'] .komorebi-edge,
+html[data-lighting-preset='pine-shadow'] body[data-lighting-register='lab'] .komorebi-edge { opacity: 1; }
+
+html[data-environment] body[data-lighting-register='threshold'] :is(.currently-grid article,.editorial-list>a,.notes-row article,.project-list article,.watching-grid article) { position: relative; overflow: visible; }
+html[data-environment] body[data-lighting-register='threshold'] :is(.currently-grid article,.editorial-list>a,.notes-row article,.project-list article,.watching-grid article)::after {
+  content: ''; position: absolute; top: -10px; right: 8%; width: 28px; height: 18px; pointer-events: none;
+  background: radial-gradient(ellipse at 40% 40%, rgb(var(--lighting-highlight) / var(--lighting-pine-layer)), transparent 70%);
+  transform: rotate(-18deg);
+}
+
+body[data-lighting-intensity='reading'] .environment-lighting {
+  --reading-gutter: 40px; --reading-column: 720px; --reading-toc: 180px; --reading-gap: 5rem;
+  --reading-hole: calc(var(--reading-column) + var(--reading-gap) + var(--reading-toc));
+  --reading-container: min(var(--container), calc(100vw - var(--reading-gutter)));
+  --reading-inset: max(0px, calc((100vw - var(--reading-container)) / 2 + (var(--reading-container) - var(--reading-hole)) / 2));
+  mask-image: linear-gradient(90deg, #000 0, #000 max(0px, calc(var(--reading-inset) - 40px)), transparent calc(var(--reading-inset) + 8px), transparent calc(var(--reading-inset) + var(--reading-hole) - 8px), #000 calc(var(--reading-inset) + var(--reading-hole) + 40px), #000 100%);
+}
+
+@keyframes komorebi-weather-a { 0% { translate: -4px -2px; } 100% { translate: 4px 2px; } }
+@keyframes komorebi-weather-b { 0% { translate: 3px -2px; } 100% { translate: -3px 2px; } }
+@keyframes komorebi-weather-c { 0% { translate: -5px 2px; } 100% { translate: 5px -2px; } }
+@keyframes pine-needles-weather { 0% { translate: -3px -1px; rotate: -.3deg; } 100% { translate: 3px 1px; rotate: .3deg; } }
+
+@media (max-width: 900px) { body[data-lighting-intensity='reading'] .environment-lighting { --reading-hole: var(--reading-column); } }
+@media (max-width: 800px) { body[data-lighting-intensity='reading'] .environment-lighting { mask-image: none; } }
+
 html[data-environment='summer'] body[data-lighting-register='threshold'][data-lighting-intensity='display'] { --lighting-dawn-layer: .22; --lighting-pine-layer: .08; --lighting-river-layer: .05; }
 html[data-environment='summer'] body[data-lighting-register='threshold'][data-lighting-intensity='standard'] { --lighting-dawn-layer: .16; --lighting-pine-layer: 0; --lighting-river-layer: 0; }
 html[data-environment='summer'] body[data-lighting-register='grove'][data-lighting-intensity='standard'] { --lighting-dawn-layer: .12; --lighting-pine-layer: .14; --lighting-river-layer: 0; }
