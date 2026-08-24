@@ -316,6 +316,33 @@ html[data-environment='night'][data-lighting-preset='silver-river'] body[data-li
 html[data-environment='summer'] body[data-lighting-register='quiet'][data-lighting-intensity='standard'] { --lighting-dawn-layer: .10; --lighting-pine-layer: 0; --lighting-river-layer: 0; }
 html[data-environment='night'] body[data-lighting-register='quiet'][data-lighting-intensity='standard'] { --lighting-dawn-layer: .08; --lighting-pine-layer: 0; --lighting-river-layer: 0; }
 
+/* The accepted production atmosphere is Silver River. Registers keep the
+   route depth model, while display/standard/reading control its amplitude. */
+html[data-lighting-preset='silver-river'][data-environment='summer'] body:not([class*='prototype-']):not([data-lighting-register='lab']) {
+  --lighting-angle: 118deg;
+  --lighting-highlight: 255 218 186;
+  --lighting-shadow: 62 58 78;
+  --lighting-source-x: 18%;
+  --lighting-source-y: 22%;
+  --lighting-dawn-layer: 0;
+  --lighting-pine-layer: 0;
+}
+html[data-lighting-preset='silver-river'][data-environment='night'] body:not([class*='prototype-']):not([data-lighting-register='lab']) {
+  --lighting-angle: 198deg;
+  --lighting-highlight: 228 236 242;
+  --lighting-shadow: 6 16 28;
+  --lighting-source-x: 58%;
+  --lighting-source-y: 32%;
+  --lighting-dawn-layer: 0;
+  --lighting-pine-layer: 0;
+}
+html[data-lighting-preset='silver-river'][data-environment='summer'] body[data-lighting-intensity='display']:not([class*='prototype-']) { --lighting-river-layer: .22; }
+html[data-lighting-preset='silver-river'][data-environment='summer'] body[data-lighting-intensity='standard']:not([class*='prototype-']) { --lighting-river-layer: .14; }
+html[data-lighting-preset='silver-river'][data-environment='summer'] body[data-lighting-intensity='reading']:not([class*='prototype-']) { --lighting-river-layer: .08; }
+html[data-lighting-preset='silver-river'][data-environment='night'] body[data-lighting-intensity='display']:not([class*='prototype-']) { --lighting-river-layer: .18; }
+html[data-lighting-preset='silver-river'][data-environment='night'] body[data-lighting-intensity='standard']:not([class*='prototype-']) { --lighting-river-layer: .12; }
+html[data-lighting-preset='silver-river'][data-environment='night'] body[data-lighting-intensity='reading']:not([class*='prototype-']) { --lighting-river-layer: .07; }
+
 @media (prefers-reduced-motion: reduce) {
   .lighting-dawn,
   .lighting-pine,

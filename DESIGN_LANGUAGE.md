@@ -140,11 +140,11 @@
 
 ### Literary Environment Lighting
 
-- 站点是一座房子、三层景深：朝窗是室内孔径，松影是中景木漏日，星河是窗外远场；三者是生产空间层，不是三套皮肤，也不是访客换装盘。
-- 环境状态写在 `<html data-environment="summer|night">`；页面以 `<body data-lighting-register="threshold|grove|field|quiet|lab" data-lighting-intensity="display|standard|reading">` 决定空间进深。`data-lighting-preset` 只服务带 `lightingPreview=1` 的排他预览与 Lab。
-- 路由映射固定为：Home / About=`threshold`，Writing / Projects=`grove`，Music=`field`，文章=`quiet`；朝窗 full / skeleton / quiet 三张图纸始终挂在 persist 舞台上，以 0.65s opacity 行走，禁止 `display:none`。
+- 正式站采用已验收的「星河」作为唯一文学空间光：Summer 是淡紫晨雾与一处暖晕，Night 是乳白薄雾与墨绿月夜；访客仍只切换 Summer / Night，不提供预设换装盘。
+- 环境状态写在 `<html data-environment="summer|night" data-lighting-preset="silver-river">`；页面保留 `<body data-lighting-register="threshold|grove|field|quiet|lab" data-lighting-intensity="display|standard|reading">`，register 继续表达房间位置，正式站的可见振幅由 intensity 决定。
+- 正式页 display / standard / reading 的星河根强度分别为 Summer `.22 / .14 / .08`、Night `.18 / .12 / .07`。三根光影层仍挂在 persist 舞台上，以 0.65s opacity 行走，禁止 `display:none`；朝窗与松影保留给 Lab 对照，不参与正式页合成。
 - 唯一合成公式为 `painted = 1 × --lighting-*-layer × local × gradient`。`.environment-lighting` 父级 opacity 锁死为 1；层 token 已经混合 register、environment 与 intensity，禁止再乘 mix 或 0.5。
-- Home Summer 主导朝窗层为 `.22`，22vmax 热核 local `.45`；Music Summer 星河层为 `.22`，紫 stop `.36`；文章 quiet 为 Summer `.08` / Night `.07`。Night 同格强度始终低于 Summer。
+- Home 与 Music 的星河 display 层为 Summer `.22` / Night `.18`，紫 stop `.36`；文章 reading 为 Summer `.08` / Night `.07`。Night 同格强度始终低于 Summer。
 - 朝窗使用 14% / 39% / 71% 竖梃和 22% / 58% 横档，Summer 保留小面积暖核，Night 使用横向银洗与底缘有机水纹；不直接绘制太阳或环境光月亮。
 - 松影只画 10 个疏斑与 6 条夜间银针，不画树；星河只画晨雾、单一日晕与乳白薄雾，不画星空壁纸。
 - 正式日夜控件只显示 Summer / Night，不展示诗句、出处或额外说明卡片。
@@ -154,7 +154,7 @@
 - Night 正式采用“墨绿月夜”：全站底色为 `#102724`，表面使用 `#18332f` / `#1e3b36`，文章页使用略浅的 `#122a27` 阅读底色，不使用中性纯黑。
 - 环境天气只使用原生 CSS、低复杂度内联 SVG 和少量 Pointer Events；周期 45–90 秒、位移数像素，页面隐藏时暂停。`prefers-reduced-motion` 下天气静止，但静态房间仍在。
 - `.environment-lighting` 使用 `transition:persist="environment-lighting"`；Home → Music → 文章通过三根层的 0.65s opacity 交叉，不依赖整页溶解。
-- 开发比较器位于 `/prototype/acg/lighting/`，以 display 行排他比较三套手艺 × 两种环境；链接只有带 `lightingPreview=1` 才能把排他状态带到正式页面，裸 `lightingPreset` 无效且选择不写入正式偏好。
+- 开发比较器位于 `/prototype/acg/lighting/`，以 display 行排他比较三套手艺 × 两种环境；链接只有带 `lightingPreview=1` 才能临时覆盖正式站的星河状态，裸 `lightingPreset` 无效且选择不写入正式偏好。
 
 ## 12. Avoid
 

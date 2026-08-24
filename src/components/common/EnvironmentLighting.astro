@@ -65,7 +65,10 @@ import RiverField from '../lighting/RiverField.astro';
     document.querySelectorAll<HTMLElement>('[data-lighting-whisper]').forEach((node) => {
       const line = node.querySelector<HTMLElement>('.whisper-line');
       const author = node.querySelector<HTMLElement>('cite');
-      const literary = lightingLiterature['dawn-window'][environment];
+      const preset = isPreset(document.documentElement.dataset.lightingPreset ?? null)
+        ? document.documentElement.dataset.lightingPreset as LightingPreset
+        : DEFAULT_LIGHTING_PRESET;
+      const literary = lightingLiterature[preset][environment];
       if (line) line.textContent = literary.line;
       if (author) author.textContent = literary.author;
     });

@@ -22,7 +22,7 @@ export interface LightingLiteraryLine {
 }
 
 export const ENVIRONMENT_STORAGE_KEY = 'nabunana:environment-v1';
-export const DEFAULT_LIGHTING_PRESET: LightingPreset = 'dawn-window';
+export const DEFAULT_LIGHTING_PRESET: LightingPreset = 'silver-river';
 export const DEFAULT_LIGHTING_REGISTER: LightingRegister = 'quiet';
 
 export const lightingPresets: LightingPresetDefinition[] = [
@@ -55,16 +55,6 @@ export const lightingRegisterIds: LightingRegister[] = ['threshold', 'grove', 'f
 
 export const isRegister = (value: string | null | undefined): value is LightingRegister =>
   lightingRegisterIds.includes(value as LightingRegister);
-
-export const lightingRegisterMix: Record<
-  Exclude<LightingRegister, 'lab'>,
-  { dawn: number; pine: number; river: number; dawnDrawing: 'full' | 'skeleton' | 'quiet' }
-> = {
-  threshold: { dawn: 0.70, pine: 0.10, river: 0.20, dawnDrawing: 'full' },
-  grove: { dawn: 0.40, pine: 0.60, river: 0, dawnDrawing: 'skeleton' },
-  field: { dawn: 0.25, pine: 0, river: 0.70, dawnDrawing: 'skeleton' },
-  quiet: { dawn: 1, pine: 0, river: 0, dawnDrawing: 'quiet' },
-};
 
 export const lightingLiterature: Record<LightingPreset, Record<EnvironmentMode, LightingLiteraryLine>> = {
   'dawn-window': {
