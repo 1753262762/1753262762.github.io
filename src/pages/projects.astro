@@ -10,7 +10,7 @@ const articleByProject: Record<string,string> = {
   'Card PDF Studio': '/blog/tcg-card-pdf-layout/',
 };
 ---
-<BaseLayout title="作品 · nabunana" description="正在构建的项目与工程实验。" pageClass="acg-site">
+<BaseLayout title="作品 · nabunana" description="正在构建的项目与工程实验。" pageClass="acg-site" lightingRegister="grove">
   <SiteHeader current="projects" />
   <PageHero eyebrow="作品 / PROJECTS" title={'做一些东西，\n把问题想明白。'} description="每个项目都是一个正在发生的问题：怎样变得更可靠、更清晰、更接近真正可用。" count={`${projects.length} PROJECTS`} />
   <main class="project-page container"><section class="project-index">{projects.map((project,index)=><article><span>{String(index+1).padStart(2,'0')}</span><div class="project-main"><small>{project.data.tech.join(' / ')}</small><h2>{project.data.name}</h2><p>{project.data.description}</p><a href={project.data.url || articleByProject[project.data.name] || '/blog/'}>阅读构建记录 ↗</a></div><div class="project-status"><i></i><b>{project.data.status}</b><small>ACTIVE LOG</small></div></article>)}</section></main>

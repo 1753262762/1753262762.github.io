@@ -4,6 +4,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import MusicArchive from '../components/acg/MusicArchive.astro';
 const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort((a,b)=>b.data.published.valueOf()-a.data.published.valueOf());
 ---
-<BaseLayout title="音楽 · nabunana" description="nabunana 的音乐档案：Yorushika、n-buna、Vocaloid 与听歌记录。" pageClass="acg-music" lightingIntensity="display">
+<BaseLayout title="音楽 · nabunana" description="nabunana 的音乐档案：Yorushika、n-buna、Vocaloid 与听歌记录。" pageClass="acg-music" lightingIntensity="display" lightingRegister="field">
   <MusicArchive {posts} />
 </BaseLayout>

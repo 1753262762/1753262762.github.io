@@ -7,7 +7,7 @@ import PageHero from '../../components/common/PageHero.astro';
 const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort((a,b)=>b.data.published.valueOf()-a.data.published.valueOf());
 const formatDate = (date: Date) => new Intl.DateTimeFormat('zh-CN', { year:'numeric', month:'2-digit', day:'2-digit' }).format(date);
 ---
-<BaseLayout title="文章 · nabunana" description="工程复盘、学习笔记、ACG 与生活记录。" pageClass="acg-site">
+<BaseLayout title="文章 · nabunana" description="工程复盘、学习笔记、ACG 与生活记录。" pageClass="acg-site" lightingRegister="grove">
   <SiteHeader current="writing" />
   <PageHero eyebrow="文章 / WRITING" title={'把做过的事，\n慢慢写清楚。'} description="工程复盘、学习笔记与兴趣记录。这里只保留仍然值得阅读和继续维护的内容。" count={`${posts.length} ENTRIES`} />
   <main class="writing-page container">

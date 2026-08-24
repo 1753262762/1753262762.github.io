@@ -3,7 +3,7 @@ import { getCollection } from 'astro:content';
 import { ClientRouter } from 'astro:transitions';
 import EnvironmentLighting from '../components/common/EnvironmentLighting.astro';
 import MusicPlayer from '../components/common/MusicPlayer.astro';
-import type { LightingIntensity } from '../lib/environment';
+import { DEFAULT_LIGHTING_PRESET, type LightingIntensity, type LightingRegister } from '../lib/environment';
 import '../styles/global.css';
 
 interface Props {
@@ -13,9 +13,10 @@ interface Props {
   image?: string;
   pageClass?: string;
   lightingIntensity?: LightingIntensity;
+  lightingRegister?: LightingRegister;
 }
 
-const { title, description = 'nabunana 的个人数字空间：写作、项目、技术与生活。', prototype, image = '/og-default.svg', pageClass, lightingIntensity = 'standard' } = Astro.props;
+const { title, description = 'nabunana 的个人数字空间：写作、项目、技术与生活。', prototype, image = '/og-default.svg', pageClass, lightingIntensity = 'standard', lightingRegister = 'quiet' } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort((a, b) => b.data.published.valueOf() - a.data.published.valueOf());
 const pages = [
@@ -29,7 +30,7 @@ const searchItems = [
 ];
 ---
 <!doctype html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-lighting-register={lightingRegister} data-lighting-preset={DEFAULT_LIGHTING_PRESET}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
@@ -67,11 +68,10 @@ const searchItems = [
         if (!environment) environment = matchMedia('(prefers-color-scheme: dark)').matches ? 'night' : 'summer';
         root.dataset.environment = environment;
         root.dataset.theme = environment === 'night' ? 'dark' : 'light';
-        root.dataset.lightingPreset = 'dawn-window';
       })();
     </script>
   </head>
-  <body class:list={[prototype && `prototype-${prototype}`, pageClass]} data-lighting-intensity={lightingIntensity}>
+  <body class:list={[prototype && `prototype-${prototype}`, pageClass]} data-lighting-register={lightingRegister} data-lighting-intensity={lightingIntensity}>
     <EnvironmentLighting />
     <slot />
     <MusicPlayer />

@@ -12,7 +12,7 @@ const { post, newer, older }=Astro.props;
 const { Content, headings }=await render(post);
 const articleSchema={"@context":"https://schema.org","@type":"BlogPosting",headline:post.data.title,description:post.data.description,datePublished:post.data.published.toISOString(),dateModified:(post.data.updated??post.data.published).toISOString(),author:{"@type":"Person",name:'nabunana',url:'https://github.com/1753262762'},mainEntityOfPage:Astro.url.href};
 ---
-<BaseLayout title={`${post.data.title} · nabunana`} description={post.data.description} pageClass="acg-site" lightingIntensity="reading">
+<BaseLayout title={`${post.data.title} · nabunana`} description={post.data.description} pageClass="acg-site" lightingIntensity="reading" lightingRegister="quiet">
   <SiteHeader current="writing" />
   <div class="reading-progress" data-reading-progress></div>
   <article class="article-page">

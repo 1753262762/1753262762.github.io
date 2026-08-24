@@ -7,7 +7,7 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort((a,b
 const projects = await getCollection('projects');
 const notes = (await getCollection('notes')).sort((a,b)=>b.data.created.valueOf()-a.data.created.valueOf());
 ---
-<BaseLayout title="ACG Prototype · nabunana" description="一名二次元开发者自己的网络房间。" prototype="acg" lightingIntensity="display">
+<BaseLayout title="ACG Prototype · nabunana" description="一名二次元开发者自己的网络房间。" prototype="acg" lightingIntensity="display" lightingRegister="threshold">
   <PrototypeHeader variant="acg" />
   <AcgHome {posts} {projects} {notes} />
 </BaseLayout>

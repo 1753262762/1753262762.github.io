@@ -1,7 +1,7 @@
 ---
 ---
 
-<div class="environment-lighting" data-environment-lighting aria-hidden="true">
+<div class="environment-lighting" data-environment-lighting aria-hidden="true" transition:persist="environment-lighting">
   <div class="lighting-drift">
     <span class="lighting-haze"></span>
     <span class="lighting-source"></span>
@@ -49,15 +49,18 @@
 <script>
   import {
     DEFAULT_LIGHTING_PRESET,
+    DEFAULT_LIGHTING_REGISTER,
     ENVIRONMENT_STORAGE_KEY,
+    isRegister,
     lightingPresetIds,
     type EnvironmentMode,
     type LightingPreset,
+    type LightingRegister,
   } from '../../lib/environment';
 
   declare global {
     interface WindowEventMap {
-      'nabunana:environment-change': CustomEvent<{ environment: EnvironmentMode; preset: LightingPreset; source: 'system' | 'user' | 'preview' | 'restore' }>;
+      'nabunana:environment-change': CustomEvent<{ environment: EnvironmentMode; preset: LightingPreset; register: LightingRegister; source: 'system' | 'user' | 'preview' | 'restore' }>;
       'nabunana:environment-preview': CustomEvent<{ environment: EnvironmentMode; preset: LightingPreset }>;
     }
   }
@@ -90,6 +93,7 @@
   const applyEnvironment = (
     environment: EnvironmentMode,
     preset: LightingPreset,
+    register: LightingRegister,
     source: 'system' | 'user' | 'preview' | 'restore',
     persist = false,
   ) => {
@@ -97,6 +101,8 @@
     root.dataset.environment = environment;
     root.dataset.theme = environment === 'night' ? 'dark' : 'light';
     root.dataset.lightingPreset = preset;
+    root.dataset.lightingRegister = register;
+    if (document.body) document.body.dataset.lightingRegister = register;
 
     if (persist) {
       try {
@@ -109,7 +115,7 @@
 
     updateEnvironmentUi(environment);
     window.dispatchEvent(new CustomEvent('nabunana:environment-change', {
-      detail: { environment, preset, source },
+      detail: { environment, preset, register, source },
     }));
   };
 
@@ -124,29 +130,35 @@
     const previewPreset = isPreset(params.get('lightingPreset')) ? params.get('lightingPreset') as LightingPreset : null;
     const previewEnvironmentValue = params.get('environment') ?? params.get('mood');
     const previewEnvironment = isEnvironment(previewEnvironmentValue) ? previewEnvironmentValue : null;
+    const pageRegister = isRegister(document.body?.dataset.lightingRegister) ? document.body.dataset.lightingRegister : DEFAULT_LIGHTING_REGISTER;
+    const previewEnabled = params.get('lightingPreview') === '1' || pageRegister === 'lab';
+    const previewActive = previewEnabled && Boolean(previewPreset || (pageRegister === 'lab' && previewEnvironment));
     const stored = readStoredEnvironment();
-    const initialEnvironment = previewEnvironment ?? stored ?? (systemTheme.matches ? 'night' : 'summer');
-    const initialPreset = previewPreset ?? (isPreset(root.dataset.lightingPreset ?? null) ? root.dataset.lightingPreset as LightingPreset : DEFAULT_LIGHTING_PRESET);
+    const initialEnvironment = (previewActive ? previewEnvironment : null) ?? stored ?? (systemTheme.matches ? 'night' : 'summer');
+    const initialPreset = previewActive && previewPreset ? previewPreset : DEFAULT_LIGHTING_PRESET;
+    const initialRegister: LightingRegister = previewActive ? 'lab' : pageRegister;
 
-    applyEnvironment(initialEnvironment, initialPreset, previewEnvironment || previewPreset ? 'preview' : stored ? 'restore' : 'system');
+    applyEnvironment(initialEnvironment, initialPreset, initialRegister, previewActive ? 'preview' : stored ? 'restore' : 'system');
 
     document.querySelectorAll<HTMLButtonElement>('[data-environment-choice]').forEach((button) => {
       button.addEventListener('click', () => {
         const environment = button.dataset.environmentChoice ?? null;
         if (!isEnvironment(environment)) return;
         const preset = isPreset(root.dataset.lightingPreset ?? null) ? root.dataset.lightingPreset as LightingPreset : DEFAULT_LIGHTING_PRESET;
-        applyEnvironment(environment, preset, 'user', true);
+        const register = isRegister(root.dataset.lightingRegister) ? root.dataset.lightingRegister : DEFAULT_LIGHTING_REGISTER;
+        applyEnvironment(environment, preset, register, 'user', true);
       }, { signal });
     });
 
     systemTheme.addEventListener('change', (event) => {
       if (readStoredEnvironment()) return;
       const preset = isPreset(root.dataset.lightingPreset ?? null) ? root.dataset.lightingPreset as LightingPreset : DEFAULT_LIGHTING_PRESET;
-      applyEnvironment(event.matches ? 'night' : 'summer', preset, 'system');
+      const register = isRegister(root.dataset.lightingRegister) ? root.dataset.lightingRegister : DEFAULT_LIGHTING_REGISTER;
+      applyEnvironment(event.matches ? 'night' : 'summer', preset, register, 'system');
     }, { signal });
 
     window.addEventListener('nabunana:environment-preview', (event) => {
-      applyEnvironment(event.detail.environment, event.detail.preset, 'preview');
+      applyEnvironment(event.detail.environment, event.detail.preset, 'lab', 'preview');
     }, { signal });
 
     const resetParallax = () => {
@@ -176,6 +188,7 @@
   };
 
   document.addEventListener('astro:page-load', setupEnvironment);
+  document.addEventListener('astro:after-swap', setupEnvironment);
   setupEnvironment();
 </script>
 

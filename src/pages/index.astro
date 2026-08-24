@@ -9,7 +9,7 @@ const projects = await getCollection('projects');
 const notes = (await getCollection('notes')).sort((a,b)=>b.data.created.valueOf()-a.data.created.valueOf());
 ---
 
-<BaseLayout title="nabunana · 写作、音乐与代码" description="nabunana 的个人数字空间：写作、项目、音乐、ACG 与夏日片段。" pageClass="acg-site" lightingIntensity="display">
+<BaseLayout title="nabunana · 写作、音乐与代码" description="nabunana 的个人数字空间：写作、项目、音乐、ACG 与夏日片段。" pageClass="acg-site" lightingIntensity="display" lightingRegister="threshold">
   <SiteHeader current="home" />
   <AcgHome {posts} {projects} {notes} prototype={false} />
 </BaseLayout>

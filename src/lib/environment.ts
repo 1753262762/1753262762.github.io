@@ -4,6 +4,8 @@ export type LightingPreset = 'dawn-window' | 'pine-shadow' | 'silver-river';
 
 export type LightingIntensity = 'display' | 'standard' | 'reading';
 
+export type LightingRegister = 'threshold' | 'grove' | 'field' | 'quiet' | 'lab';
+
 export interface LightingPresetDefinition {
   id: LightingPreset;
   index: string;
@@ -14,6 +16,7 @@ export interface LightingPresetDefinition {
 
 export const ENVIRONMENT_STORAGE_KEY = 'nabunana:environment-v1';
 export const DEFAULT_LIGHTING_PRESET: LightingPreset = 'dawn-window';
+export const DEFAULT_LIGHTING_REGISTER: LightingRegister = 'quiet';
 
 export const lightingPresets: LightingPresetDefinition[] = [
   {
@@ -40,3 +43,18 @@ export const lightingPresets: LightingPresetDefinition[] = [
 ];
 
 export const lightingPresetIds = lightingPresets.map((preset) => preset.id);
+
+export const lightingRegisterIds: LightingRegister[] = ['threshold', 'grove', 'field', 'quiet', 'lab'];
+
+export const isRegister = (value: string | null | undefined): value is LightingRegister =>
+  lightingRegisterIds.includes(value as LightingRegister);
+
+export const lightingRegisterMix: Record<
+  Exclude<LightingRegister, 'lab'>,
+  { dawn: number; pine: number; river: number; dawnDrawing: 'full' | 'skeleton' | 'quiet' }
+> = {
+  threshold: { dawn: 0.70, pine: 0.10, river: 0.20, dawnDrawing: 'full' },
+  grove: { dawn: 0.40, pine: 0.60, river: 0, dawnDrawing: 'skeleton' },
+  field: { dawn: 0.25, pine: 0, river: 0.70, dawnDrawing: 'skeleton' },
+  quiet: { dawn: 1, pine: 0, river: 0, dawnDrawing: 'quiet' },
+};
