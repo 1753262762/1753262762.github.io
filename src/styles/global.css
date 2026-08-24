@@ -1,4 +1,5 @@
 @import './tokens.css';
+@import './lighting.css';
 
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; background: var(--bg); }
