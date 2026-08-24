@@ -196,6 +196,48 @@ body[data-lighting-intensity='reading'] .environment-lighting {
 @media (max-width: 900px) { body[data-lighting-intensity='reading'] .environment-lighting { --reading-hole: var(--reading-column); } }
 @media (max-width: 800px) { body[data-lighting-intensity='reading'] .environment-lighting { mask-image: none; } }
 
+html[data-environment='summer'] body[data-lighting-register='field'],
+html[data-environment='summer'][data-lighting-preset='silver-river'] body[data-lighting-register='lab'] { --lighting-angle: 118deg; --lighting-highlight: 255 218 186; --lighting-shadow: 62 58 78; --lighting-source-x: 18%; --lighting-source-y: 22%; }
+html[data-environment='night'] body[data-lighting-register='field'],
+html[data-environment='night'][data-lighting-preset='silver-river'] body[data-lighting-register='lab'] { --lighting-angle: 198deg; --lighting-highlight: 228 236 242; --lighting-shadow: 6 16 28; --lighting-source-x: 58%; --lighting-source-y: 32%; }
+
+.field-wash,
+.field-halo,
+.galactic-mist { position: absolute; transition: opacity .65s var(--ease); }
+.field-wash {
+  inset: -4% -6% 56%;
+  background: linear-gradient(180deg, rgb(177 151 197 / .36) 0%, rgb(255 218 186 / 1) 23%, rgb(255 218 186 / .42) 31%, transparent 42%);
+  transform: translate3d(calc(var(--light-shift-x) * .55), calc(var(--light-shift-y) * .4), 0);
+  animation: river-dawn-weather 76s ease-in-out infinite alternate;
+}
+.field-halo {
+  left: 22%; top: 28%; width: 28vmax; height: 19vmax;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgb(var(--lighting-highlight) / 1), rgb(var(--lighting-highlight) / .46) 32%, transparent 72%);
+  transform: translate3d(calc(-50% + var(--light-shift-x)), calc(-50% + var(--light-shift-y)), 0);
+  transform-origin: center;
+  animation: river-halo-weather 64s ease-in-out infinite alternate;
+}
+.galactic-mist {
+  inset: -12% -14% 43%;
+  background: linear-gradient(163deg, transparent 12%, rgb(228 236 242 / .28) 25%, rgb(228 236 242 / 1) 42%, rgb(228 236 242 / .68) 53%, transparent 72%);
+  transform: translate3d(calc(var(--light-shift-x) * .65), calc(var(--light-shift-y) * .45), 0) rotate(-3deg);
+  transform-origin: 58% 32%;
+  animation: river-mist-weather 90s ease-in-out infinite alternate;
+}
+html[data-environment='summer'] .field-wash { opacity: 1; }
+html[data-environment='summer'] .field-halo { opacity: .50; }
+html[data-environment='summer'] .galactic-mist { opacity: 0; }
+html[data-environment='night'] .field-wash { opacity: 0; }
+html[data-environment='night'] .field-halo { opacity: .45; background: radial-gradient(ellipse 72% 38%, rgb(228 236 242 / 1), rgb(228 236 242 / .34) 38%, transparent 74%); }
+html[data-environment='night'] .galactic-mist { opacity: 1; }
+
+html[data-environment='night'] body[data-lighting-register='field'] .site-player { box-shadow: inset 0 1px 0 rgb(var(--lighting-highlight) / .11), 0 18px 54px rgb(0 12 10 / 34%); }
+
+@keyframes river-dawn-weather { 0% { translate: -2% -1%; } 100% { translate: 2% 1%; } }
+@keyframes river-halo-weather { 0% { scale: .985; } 100% { scale: 1.025; } }
+@keyframes river-mist-weather { 0% { translate: -6px -2px; scale: .995; } 100% { translate: 6px 2px; scale: 1.012; } }
+
 html[data-environment='summer'] body[data-lighting-register='threshold'][data-lighting-intensity='display'] { --lighting-dawn-layer: .22; --lighting-pine-layer: .08; --lighting-river-layer: .05; }
 html[data-environment='summer'] body[data-lighting-register='threshold'][data-lighting-intensity='standard'] { --lighting-dawn-layer: .16; --lighting-pine-layer: 0; --lighting-river-layer: 0; }
 html[data-environment='summer'] body[data-lighting-register='grove'][data-lighting-intensity='standard'] { --lighting-dawn-layer: .12; --lighting-pine-layer: .14; --lighting-river-layer: 0; }
