@@ -7,7 +7,7 @@
 推荐环境：
 
 - Windows 10/11
-- Node.js 22 或 24
+- Node.js 22.19 或 24
 - npm 10 或更高版本
 - PowerShell
 
@@ -222,7 +222,43 @@ http://127.0.0.1:4321/?lightingPreset=dawn-window&environment=night&lightingPrev
 http://127.0.0.1:4321/music/?lightingPreset=dawn-window&environment=summer&lightingPreview=1
 ```
 
-## 8. 发布边界
+## 8. GitHub Actions 自动发布
+
+`main` 分支是唯一生产分支。Pull Request 只执行检查与构建；推送或手动运行
+`Build and deploy blog` 工作流时，Actions 会构建静态站、通过 SSH 上传，并在服务器上
+原子切换 `/var/www/blog`。GitHub Pages 不参与发布。
+
+先在 GitHub 仓库的 `Settings → Environments` 创建 `production` 环境，再设置以下 Secrets：
+
+| 名称 | 内容 |
+| --- | --- |
+| `SERVER_HOST` | 服务器地址，例如 `39.108.101.149` |
+| `SERVER_USER` | 有权写入站点父目录的 SSH 用户 |
+| `SERVER_PORT` | SSH 端口；不设置时使用 `22` |
+| `SERVER_SSH_KEY` | 专用于 Actions 的 SSH 私钥全文 |
+| `SERVER_KNOWN_HOSTS` | `ssh-keyscan -H <服务器地址>` 的输出；应在可信终端核对指纹 |
+
+服务器准备完成后，在仓库 `Settings → Secrets and variables → Actions → Variables` 中新增
+Repository Variable `DEPLOY_ENABLED=true`。没有这个开关时，工作流只构建和测试，不会连接服务器；
+这样首次推送 `main` 时不会因为凭据尚未配置而误发布。
+
+可选的 Environment Variables：
+
+| 名称 | 默认值 | 用途 |
+| --- | --- | --- |
+| `DEPLOY_PATH` | `/var/www/blog` | Nginx 站点根目录 |
+| `SITE_URL` | `http://39.108.101.149` | 发布后的 HTTP 健康检查地址 |
+
+MP3 不进入 Git 仓库。自动发布会从服务器当前版本继承 `media/music` 下的 MP3；如果
+服务器完全没有 MP3，发布会停止且不会切换旧站。首次上线前应手动把音乐文件上传到
+`/var/www/blog/media/music`。首次自动发布会把原有实体目录移到相邻的
+`.blog-backups/legacy-<UTC 时间>`，以后每个版本位于 `.blog-releases/`，站点目录本身
+是指向当前版本的符号链接。
+
+如需回滚，在服务器上把 `/var/www/blog` 符号链接切换到上一版本；每个新版本中的
+`PREVIOUS_RELEASE` 文件记录了上一个目标。工作流不会自动删除旧版本或首次发布备份。
+
+## 9. 手动发布边界
 
 本地构建成功不等于可以直接上线。当前流程要求：
 
@@ -236,7 +272,7 @@ http://127.0.0.1:4321/music/?lightingPreset=dawn-window&environment=summer&light
 
 不要在未备份时直接清空或覆盖 `/var/www/blog`。服务器密码也不要写入脚本、本文档或命令参数。
 
-## 9. 常见问题
+## 10. 常见问题
 
 ### `npm` 或 `node` 找不到
 
