@@ -1,0 +1,138 @@
+name: Build and deploy blog
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: blog-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build static site
+        env:
+          ASTRO_TELEMETRY_DISABLED: "1"
+        run: npm run build
+
+      - name: Verify build output
+        shell: bash
+        run: |
+          test -f dist/index.html
+          test -f dist/robots.txt
+          test -f dist/rss.xml
+
+      - name: Test atomic deployment script
+        run: bash scripts/test-deploy-release.sh
+
+      - name: Package site
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        run: tar -czf site.tar.gz -C dist .
+
+      - name: Upload build artifact
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v7
+        with:
+          name: blog-${{ github.sha }}
+          path: site.tar.gz
+          if-no-files-found: error
+          retention-days: 3
+
+  deploy:
+    name: Deploy to server
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      github.event_name != 'pull_request' &&
+      vars.DEPLOY_ENABLED == 'true'
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: production
+    steps:
+      - name: Check out deployment script
+        uses: actions/checkout@v7
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: blog-${{ github.sha }}
+
+      - name: Configure SSH
+        shell: bash
+        env:
+          SERVER_SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
+          SERVER_KNOWN_HOSTS: ${{ secrets.SERVER_KNOWN_HOSTS }}
+        run: |
+          set -Eeuo pipefail
+          test -n "$SERVER_SSH_KEY"
+          test -n "$SERVER_KNOWN_HOSTS"
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SERVER_SSH_KEY" | tr -d '\r' > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$SERVER_KNOWN_HOSTS" | tr -d '\r' > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Upload and activate release
+        shell: bash
+        env:
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SERVER_PORT: ${{ secrets.SERVER_PORT }}
+          DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
+        run: |
+          set -Eeuo pipefail
+
+          : "${SERVER_HOST:?Add SERVER_HOST to the production environment secrets}"
+          : "${SERVER_USER:?Add SERVER_USER to the production environment secrets}"
+          SERVER_PORT="${SERVER_PORT:-22}"
+          DEPLOY_PATH="${DEPLOY_PATH:-/var/www/blog}"
+          RELEASE_ID="${GITHUB_SHA}-${GITHUB_RUN_ATTEMPT}"
+          REMOTE_STAGE="/tmp/blog-deploy-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          SSH_TARGET="${SERVER_USER}@${SERVER_HOST}"
+          SSH_OPTIONS=(-i ~/.ssh/id_ed25519 -p "$SERVER_PORT" -o BatchMode=yes -o StrictHostKeyChecking=yes)
+
+          printf -v prepare_command 'install -m 700 -d %q' "$REMOTE_STAGE"
+          ssh "${SSH_OPTIONS[@]}" "$SSH_TARGET" "$prepare_command"
+          scp -i ~/.ssh/id_ed25519 -P "$SERVER_PORT" -o BatchMode=yes -o StrictHostKeyChecking=yes \
+            site.tar.gz scripts/deploy-release.sh "$SSH_TARGET:$REMOTE_STAGE/"
+
+          printf -v deploy_command 'bash %q %q %q %q' \
+            "$REMOTE_STAGE/deploy-release.sh" \
+            "$REMOTE_STAGE/site.tar.gz" \
+            "$DEPLOY_PATH" \
+            "$RELEASE_ID"
+          ssh "${SSH_OPTIONS[@]}" "$SSH_TARGET" "$deploy_command"
+
+      - name: Verify deployed site
+        shell: bash
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+        run: |
+          set -Eeuo pipefail
+          SITE_URL="${SITE_URL:-http://39.108.101.149}"
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 2 \
+            --output /dev/null "$SITE_URL/"
