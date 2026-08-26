@@ -72,7 +72,7 @@ SERVER_KNOWN_HOSTS
 
 ```text
 DEPLOY_PATH=/var/www/blog
-SITE_URL=<生产站点 URL>
+SITE_URL=https://elma-gohan.xyz
 ```
 
 Repository Variable：
@@ -154,7 +154,7 @@ nginx -t
 3. MP3 不在 Git 中，应建立至少一份异机或对象存储备份。
 4. Release 和首次迁移备份不会自动清理。确认回滚窗口后再制定保留策略，不要直接递归删除未核对的目录。
 5. 如果只删除旧 `master` 而不重写历史，旧博客仍存在于 Git 历史提交中。只有涉及敏感信息时才考虑历史重写。
-6. 当前站点如仍使用 HTTP，应补充域名、TLS 证书和 HTTPS 健康检查。
+6. 正式站使用 `https://elma-gohan.xyz`；`www.elma-gohan.xyz` 永久重定向到根域名。证书由 Certbot 自动续期，发布后应继续执行 HTTPS 健康检查。
 
 ## 9. 故障定位顺序
 

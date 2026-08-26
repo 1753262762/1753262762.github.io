@@ -133,6 +133,6 @@ jobs:
           SITE_URL: ${{ vars.SITE_URL }}
         run: |
           set -Eeuo pipefail
-          SITE_URL="${SITE_URL:-http://39.108.101.149}"
+          SITE_URL="${SITE_URL:-https://elma-gohan.xyz}"
           curl --fail --silent --show-error --location --retry 5 --retry-delay 2 \
             --output /dev/null "$SITE_URL/"
