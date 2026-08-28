@@ -247,7 +247,7 @@ Repository Variable `DEPLOY_ENABLED=true`。没有这个开关时，工作流只
 | 名称 | 默认值 | 用途 |
 | --- | --- | --- |
 | `DEPLOY_PATH` | `/var/www/blog` | Nginx 站点根目录 |
-| `SITE_URL` | `http://39.108.101.149` | 发布后的 HTTP 健康检查地址 |
+| `SITE_URL` | `https://elma-gohan.xyz` | 发布后的 HTTPS 健康检查地址 |
 
 MP3 不进入 Git 仓库。自动发布会从服务器当前版本继承 `media/music` 下的 MP3；如果
 服务器完全没有 MP3，发布会停止且不会切换旧站。首次上线前应手动把音乐文件上传到
