@@ -54,7 +54,22 @@ const serializedTracks = JSON.stringify(playerTracks);
     const audio = JSON.parse(container.dataset.tracks || '[]');
     const savedIndex = Number.parseInt(localStorage.getItem('nabunana-player-index') || '0', 10);
     const safeIndex = Number.isFinite(savedIndex) && savedIndex >= 0 && savedIndex < audio.length ? savedIndex : 0;
-    const player = new APlayer({
+    const firstTrackUrl = audio[safeIndex]?.url as string | undefined;
+    let audioAvailable = false;
+    if (firstTrackUrl) {
+      try {
+        const response = await fetch(firstTrackUrl, { method: 'HEAD', cache: 'no-store' });
+        audioAvailable = response.ok;
+      } catch {
+        audioAvailable = false;
+      }
+    }
+
+    if (!audioAvailable) {
+      playerRoot?.setAttribute('hidden', '');
+      container.dataset.ready = 'unavailable';
+    } else {
+      const player = new APlayer({
       container,
       audio,
       fixed: true,
@@ -325,7 +340,8 @@ const serializedTracks = JSON.stringify(playerTracks);
     document.addEventListener('astro:before-swap', () => localStorage.setItem('nabunana-player-time', String(player.audio.currentTime)));
     window.addEventListener('pagehide', () => localStorage.setItem('nabunana-player-time', String(player.audio.currentTime)));
     syncLibraryTrack(safeIndex);
-    container.dataset.ready = 'true';
+      container.dataset.ready = 'true';
+    }
   }
 </script>
 

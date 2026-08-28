@@ -1,0 +1,21 @@
+[Unit]
+Description=nabunana blog page-view statistics
+After=network.target
+
+[Service]
+Type=simple
+User=nabunana-stats
+Group=nabunana-stats
+EnvironmentFile=/etc/nabunana-stats.env
+ExecStart=/opt/nabunana-stats/nabunana-stats serve
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/nabunana-stats
+ReadOnlyPaths=/var/www
+
+[Install]
+WantedBy=multi-user.target

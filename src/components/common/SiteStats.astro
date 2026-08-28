@@ -1,0 +1,49 @@
+<footer class="site-stats" data-site-stats aria-label="网站访问统计">
+  <span>累计访问 <strong data-total-views aria-live="polite">—</strong> 次</span>
+</footer>
+
+<script>
+  type StatsResponse = { totalViews: number; articleViews: number | null };
+
+  let lastStatsPath = '';
+  const formatViews = new Intl.NumberFormat('zh-CN');
+
+  const recordPageView = async () => {
+    const path = location.pathname;
+    if (path === lastStatsPath) return;
+    lastStatsPath = path;
+
+    const footer = document.querySelector<HTMLElement>('[data-site-stats]');
+    if (!footer) return;
+
+    const total = footer.querySelector<HTMLElement>('[data-total-views]');
+    const article = [...document.querySelectorAll<HTMLElement>('[data-article-views]')];
+    if (total) total.textContent = '—';
+    article.forEach((node) => { node.textContent = '—'; });
+
+    try {
+      const response = await fetch('/api/stats/view', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ path }),
+        cache: 'no-store',
+        credentials: 'same-origin',
+        keepalive: true,
+      });
+      if (!response.ok) return;
+      const data = await response.json() as StatsResponse;
+      if (total && Number.isSafeInteger(data.totalViews)) total.textContent = formatViews.format(data.totalViews);
+      if (Number.isSafeInteger(data.articleViews)) article.forEach((node) => { node.textContent = formatViews.format(data.articleViews!); });
+    } catch {
+      // Statistics are deliberately non-blocking.
+    }
+  };
+
+  document.addEventListener('astro:page-load', recordPageView);
+  queueMicrotask(recordPageView);
+</script>
+
+<style>
+  .site-stats{display:flex;justify-content:center;min-height:78px;align-items:center;padding:1.5rem 20px;border-top:1px solid var(--border);background:color-mix(in srgb,var(--bg) 94%,transparent);color:var(--muted);font:500 .58rem/1.5 var(--font-mono);letter-spacing:.1em;text-transform:uppercase}
+  .site-stats strong{display:inline-block;min-width:6ch;color:var(--text);font:inherit;font-variant-numeric:tabular-nums;text-align:center}
+</style>

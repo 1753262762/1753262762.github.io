@@ -1,0 +1,55 @@
+<div class="custom-cursor" data-custom-cursor aria-hidden="true"><i></i><span></span></div>
+
+<script>
+  let customCursorAbort: AbortController | undefined;
+  let cursorFrame = 0;
+
+  const setupCustomCursor = () => {
+    customCursorAbort?.abort();
+    customCursorAbort = new AbortController();
+    const { signal } = customCursorAbort;
+    const cursor = document.querySelector<HTMLElement>('[data-custom-cursor]');
+    const finePointer = matchMedia('(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)');
+    document.documentElement.classList.remove('custom-cursor-ready');
+    if (!cursor || !finePointer.matches) return;
+
+    const interactiveSelector = 'a,button,summary,[role="button"],[data-cursor-interactive]';
+    const dragSelector = '[data-cursor-drag],.album-gallery';
+    const editableSelector = 'input,textarea,select,[contenteditable="true"]';
+    let x = -40;
+    let y = -40;
+
+    const draw = () => {
+      cursor.style.transform = `translate3d(${x}px,${y}px,0)`;
+      cursorFrame = 0;
+    };
+    const move = (event: PointerEvent) => {
+      if (event.pointerType === 'touch') return;
+      x = event.clientX;
+      y = event.clientY;
+      cursor.classList.add('is-visible');
+      document.documentElement.classList.add('custom-cursor-ready');
+      if (!cursorFrame) cursorFrame = requestAnimationFrame(draw);
+    };
+    const updateTarget = (event: PointerEvent) => {
+      const target = event.target instanceof Element ? event.target : null;
+      cursor.classList.toggle('is-editing', Boolean(target?.closest(editableSelector)));
+      cursor.classList.toggle('is-dragging', Boolean(target?.closest(dragSelector)));
+      cursor.classList.toggle('is-interactive', Boolean(target?.closest(interactiveSelector)));
+    };
+
+    document.addEventListener('pointermove', move, { passive: true, signal });
+    document.addEventListener('pointerover', updateTarget, { passive: true, signal });
+    document.addEventListener('pointerleave', () => cursor.classList.remove('is-visible'), { signal });
+    window.addEventListener('blur', () => cursor.classList.remove('is-visible'), { signal });
+  };
+
+  document.addEventListener('astro:page-load', setupCustomCursor);
+  queueMicrotask(setupCustomCursor);
+</script>
+
+<style is:global>
+  .custom-cursor{position:fixed;z-index:120;top:0;left:0;width:0;height:0;pointer-events:none;opacity:0;transition:opacity .14s ease;will-change:transform}.custom-cursor.is-visible:not(.is-editing){opacity:1}.custom-cursor i,.custom-cursor span{position:absolute;display:block;top:0;left:0;border-radius:999px;translate:-50% -50%;transition:width .24s var(--ease),height .24s var(--ease),opacity .18s ease}.custom-cursor i{width:6px;height:6px;background:#f5efe1;box-shadow:0 0 0 1px rgb(72 77 75/.3),0 1px 5px rgb(20 30 28/.22)}.custom-cursor span{width:20px;height:20px;border:1px solid rgb(91 98 95/.42);background:rgb(238 238 232/.06);box-shadow:0 2px 8px rgb(22 31 29/.1);backdrop-filter:blur(1px)}.custom-cursor.is-interactive i{width:4px;height:4px;opacity:.75}.custom-cursor.is-interactive span{width:32px;height:32px;border-color:rgb(91 98 95/.55);background:rgb(245 239 225/.1)}.custom-cursor.is-dragging span{width:38px;height:18px}
+  @media (hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){html.custom-cursor-ready,html.custom-cursor-ready body,html.custom-cursor-ready :where(a,button,summary,[role='button'],[data-cursor-interactive],[data-cursor-drag],.album-gallery){cursor:none!important}html.custom-cursor-ready :where(input,textarea,select,[contenteditable='true']){cursor:text!important}}
+  @media (hover:none),(pointer:coarse),(prefers-reduced-motion:reduce){.custom-cursor{display:none!important}}
+</style>

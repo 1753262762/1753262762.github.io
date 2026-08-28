@@ -317,3 +317,84 @@ npm run preview -- --host 127.0.0.1
 ```powershell
 npm run preview -- --host 127.0.0.1 --port 4322
 ```
+
+## 11. 访问统计服务
+
+正式页面通过同源 `/api/stats/view` 记录 PV；服务只监听 `127.0.0.1:8787`，SQLite 数据保存在
+`/var/lib/nabunana-stats/stats.db`。数据库不在 `/var/www/blog` Release 中，静态站发布和回滚都不会覆盖它。
+
+### 11.1 首次编译与安装
+
+在 CI 下载 `stats-<commit>` Artifact，或在装有 Go 1.25 的可信机器编译：
+
+```bash
+cd stats
+CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -o nabunana-stats .
+```
+
+把仓库、二进制上传到服务器。若现有 Nginx `server {}` 已包含一个专用片段目录，把该目录作为第三个参数；
+否则安装器会生成 `/etc/nginx/snippets/nabunana-stats.conf`，需要先把下列 include 放入博客的 `server {}`：
+
+```nginx
+include /etc/nginx/snippets/nabunana-stats.conf;
+```
+
+然后安装：
+
+```bash
+sudo bash scripts/install-stats-service.sh ./nabunana-stats http://39.108.101.149
+sudo nginx -t
+```
+
+使用域名或 HTTPS 后，第二个参数必须与浏览器地址的 Origin 完全一致，并同步更新
+`/etc/nabunana-stats.env` 中的 `STATS_ALLOWED_ORIGIN`。
+
+### 11.2 历史 Nginx 日志回填
+
+服务接收实时流量前先预览现存日志。命令支持普通文件和 `.gz` 轮转文件，只导入当前 Astro 正式 HTML 路由，
+并报告爬虫、无效状态、未知路径和解析失败数量：
+
+```bash
+sudo -u nabunana-stats /opt/nabunana-stats/nabunana-stats import-nginx \
+  --database /var/lib/nabunana-stats/stats.db \
+  --site-root /var/www/blog \
+  '/var/log/nginx/access.log*'
+```
+
+核对 JSON 预览后，用相同参数追加 `--apply`。数据库一旦导入过历史数据或收到过实时访问，程序会拒绝再次导入。
+若 `nabunana-stats` 用户无权读取日志，应由管理员把日志复制到一个只读临时目录后再导入；不要放宽整个
+`/var/log/nginx` 的权限。
+
+导入成功后才激活服务和 Nginx 路由：
+
+```bash
+sudo systemctl enable --now nabunana-stats.service
+sudo nginx -t
+sudo systemctl reload nginx
+curl --fail http://127.0.0.1:8787/api/stats/health
+```
+
+### 11.3 自动更新权限
+
+首次安装会把受约束的更新辅助程序放在 `/usr/local/sbin/deploy-nabunana-stats`。为 Actions 的部署用户配置
+只允许执行该程序的 `sudoers` 规则，不要授予通用 `systemctl`、`install` 或无密码 shell 权限。辅助程序只接受
+`/tmp/blog-deploy-<run>-<attempt>/nabunana-stats-linux-{amd64,arm64}`，更新后检查健康端点，失败时恢复上一二进制。
+
+### 11.4 状态、备份与故障定位
+
+```bash
+systemctl status nabunana-stats.service
+journalctl -u nabunana-stats.service --since today
+curl --fail http://127.0.0.1:8787/api/stats/health
+sudo -u nabunana-stats sqlite3 /var/lib/nabunana-stats/stats.db 'PRAGMA integrity_check;'
+```
+
+备份前使用 SQLite 在线备份命令，避免只复制 WAL 模式下的主文件：
+
+```bash
+sudo -u nabunana-stats sqlite3 /var/lib/nabunana-stats/stats.db \
+  ".backup '/var/lib/nabunana-stats/stats-backup-$(date -u +%Y%m%dT%H%M%SZ).db'"
+```
+
+页面显示 `—` 时依次检查公网 `/api/stats/health`、Nginx location、systemd 日志、
+`STATS_ALLOWED_ORIGIN` 和数据库目录权限。429 表示同一来源超过每秒一个请求、最多突发 20 次的内存限流。

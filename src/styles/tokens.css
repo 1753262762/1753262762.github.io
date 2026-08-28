@@ -6,6 +6,7 @@
   --strong: #111111;
   --muted: #686865;
   --accent: #5d6d5a;
+  --accent-deep: #3f5f59;
   --border: color-mix(in srgb, var(--text) 12%, transparent);
   --shadow: 0 18px 50px rgb(var(--lighting-shadow, 0 0 0) / 8%);
   --radius-sm: 8px;
@@ -35,6 +36,7 @@
   --strong: #f3f8f6;
   --muted: #9eb3ae;
   --accent: #78c5bb;
+  --accent-deep: #91d6cd;
   --border: rgb(174 222 215 / 15%);
   --shadow: 0 24px 70px rgb(var(--lighting-shadow, 10 34 32) / 24%);
   color-scheme: dark;

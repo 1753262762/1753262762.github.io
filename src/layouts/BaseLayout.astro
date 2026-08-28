@@ -3,6 +3,8 @@ import { getCollection } from 'astro:content';
 import { ClientRouter } from 'astro:transitions';
 import EnvironmentLighting from '../components/common/EnvironmentLighting.astro';
 import MusicPlayer from '../components/common/MusicPlayer.astro';
+import SiteStats from '../components/common/SiteStats.astro';
+import CustomCursor from '../components/common/CustomCursor.astro';
 import { DEFAULT_LIGHTING_PRESET, type LightingIntensity, type LightingRegister } from '../lib/environment';
 import '../styles/global.css';
 
@@ -17,6 +19,7 @@ interface Props {
 }
 
 const { title, description = 'nabunana 的个人数字空间：写作、项目、技术与生活。', prototype, image = '/og-default.svg', pageClass, lightingIntensity = 'standard', lightingRegister = 'quiet' } = Astro.props;
+const isFormalPage = !prototype && !Astro.url.pathname.startsWith('/prototype/');
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort((a, b) => b.data.published.valueOf() - a.data.published.valueOf());
 const pages = [
@@ -71,9 +74,11 @@ const searchItems = [
       })();
     </script>
   </head>
-  <body class:list={[prototype && `prototype-${prototype}`, pageClass]} data-lighting-register={lightingRegister} data-lighting-intensity={lightingIntensity}>
+  <body class:list={[prototype && `prototype-${prototype}`, isFormalPage && 'formal-site', pageClass]} data-lighting-register={lightingRegister} data-lighting-intensity={lightingIntensity}>
     <EnvironmentLighting />
     <slot />
+    {isFormalPage && <SiteStats />}
+    {isFormalPage && <CustomCursor />}
     <MusicPlayer />
     {prototype && <nav class="lab-bar" aria-label="原型快速切换">
       <a class="lab-label" href="/prototype/">Design Lab</a>

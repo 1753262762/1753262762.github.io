@@ -31,6 +31,12 @@ jobs:
           node-version-file: .node-version
           cache: npm
 
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: 1.25.x
+          cache-dependency-path: stats/go.sum
+
       - name: Install dependencies
         run: npm ci
 
@@ -38,6 +44,20 @@ jobs:
         env:
           ASTRO_TELEMETRY_DISABLED: "1"
         run: npm run build
+
+      - name: Test statistics service
+        working-directory: stats
+        run: go test ./...
+
+      - name: Build statistics service
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        working-directory: stats
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          mkdir -p bin
+          GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o bin/nabunana-stats-linux-amd64 .
+          GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o bin/nabunana-stats-linux-arm64 .
 
       - name: Verify build output
         shell: bash
@@ -62,6 +82,15 @@ jobs:
           if-no-files-found: error
           retention-days: 3
 
+      - name: Upload statistics artifact
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v7
+        with:
+          name: stats-${{ github.sha }}
+          path: stats/bin/nabunana-stats-linux-*
+          if-no-files-found: error
+          retention-days: 3
+
   deploy:
     name: Deploy to server
     if: >-
@@ -80,6 +109,12 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: blog-${{ github.sha }}
+
+      - name: Download statistics artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: stats-${{ github.sha }}
+          path: stats-artifact
 
       - name: Configure SSH
         shell: bash
@@ -118,7 +153,9 @@ jobs:
           printf -v prepare_command 'install -m 700 -d %q' "$REMOTE_STAGE"
           ssh "${SSH_OPTIONS[@]}" "$SSH_TARGET" "$prepare_command"
           scp -i ~/.ssh/id_ed25519 -P "$SERVER_PORT" -o BatchMode=yes -o StrictHostKeyChecking=yes \
-            site.tar.gz scripts/deploy-release.sh "$SSH_TARGET:$REMOTE_STAGE/"
+            site.tar.gz scripts/deploy-release.sh \
+            stats-artifact/nabunana-stats-linux-amd64 stats-artifact/nabunana-stats-linux-arm64 \
+            "$SSH_TARGET:$REMOTE_STAGE/"
 
           printf -v deploy_command 'bash %q %q %q %q' \
             "$REMOTE_STAGE/deploy-release.sh" \
@@ -127,6 +164,11 @@ jobs:
             "$RELEASE_ID"
           ssh "${SSH_OPTIONS[@]}" "$SSH_TARGET" "$deploy_command"
 
+          printf -v stats_command 'sudo -n /usr/local/sbin/deploy-nabunana-stats %q %q' \
+            "$REMOTE_STAGE/nabunana-stats-linux-amd64" \
+            "$REMOTE_STAGE/nabunana-stats-linux-arm64"
+          ssh "${SSH_OPTIONS[@]}" "$SSH_TARGET" "$stats_command"
+
       - name: Verify deployed site
         shell: bash
         env:
@@ -134,5 +176,8 @@ jobs:
         run: |
           set -Eeuo pipefail
           SITE_URL="${SITE_URL:-http://39.108.101.149}"
+          SITE_URL="${SITE_URL%/}"
           curl --fail --silent --show-error --location --retry 5 --retry-delay 2 \
             --output /dev/null "$SITE_URL/"
+          curl --fail --silent --show-error --retry 5 --retry-delay 2 \
+            --output /dev/null "$SITE_URL/api/stats/health"
