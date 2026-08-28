@@ -1,0 +1,105 @@
+---
+---
+<script>
+  let motionAbort: AbortController | undefined;
+
+  const bindMotionDirector = () => {
+    motionAbort?.abort();
+    motionAbort = new AbortController();
+    const { signal } = motionAbort;
+    const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+    const compactLayout = matchMedia('(max-width: 900px), (max-height: 800px)');
+    const scenes = [...document.querySelectorAll<HTMLElement>('[data-scene]')];
+    const editorialSections = [...document.querySelectorAll<HTMLElement>('[data-editorial-depth]')];
+    const revealGroups = [...document.querySelectorAll<HTMLElement>('[data-reveal-group]')];
+    const revealItems = [...document.querySelectorAll<HTMLElement>('[data-scroll-reveal]')];
+    if (!scenes.length && !editorialSections.length && !revealGroups.length) return;
+
+    const visibleTargets = new Set<HTMLElement>();
+    let directorFrame = 0;
+    const clamp = (value: number) => Math.min(1, Math.max(0, value));
+
+    const renderDirector = () => {
+      directorFrame = 0;
+      if (document.hidden || reducedMotion.matches) return;
+      visibleTargets.forEach((target) => {
+        if (target.matches('[data-scene]') && !compactLayout.matches) {
+          const track = target.querySelector<HTMLElement>('.scene-track');
+          if (!track) return;
+          const distance = track.offsetHeight - innerHeight;
+          const progress = distance > 0 ? clamp(-track.getBoundingClientRect().top / distance) : 0;
+          target.style.setProperty('--p', progress.toFixed(5));
+          return;
+        }
+        if (target.matches('[data-editorial-depth]')) {
+          const top = target.getBoundingClientRect().top;
+          const enter = clamp((innerHeight * .85 - top) / (innerHeight * .2));
+          target.style.setProperty('--enter', enter.toFixed(5));
+        }
+        if (target.matches('[data-reveal-group]')) {
+          const staggerLines = target.dataset.revealStagger === 'lines';
+          const isEndGroup = target.matches('.acg-footer');
+          const maxScroll = document.documentElement.scrollHeight - innerHeight;
+          const endProgress = isEndGroup
+            ? clamp((scrollY - (maxScroll - innerHeight * .72)) / (innerHeight * .72))
+            : 0;
+          target.querySelectorAll<HTMLElement>('[data-scroll-reveal]').forEach((item, index) => {
+            const top = item.getBoundingClientRect().top + (staggerLines ? index * 42 : 0);
+            const viewportReveal = clamp((innerHeight * .9 - top) / (innerHeight * .22));
+            const endReveal = isEndGroup ? clamp((endProgress - index * .13) / .42) : 0;
+            item.style.setProperty('--reveal', Math.max(viewportReveal, endReveal).toFixed(5));
+          });
+        }
+      });
+      if (visibleTargets.size) directorFrame = requestAnimationFrame(renderDirector);
+    };
+
+    const startDirector = () => {
+      if (!directorFrame && visibleTargets.size && !document.hidden && !reducedMotion.matches) {
+        directorFrame = requestAnimationFrame(renderDirector);
+      }
+    };
+
+    const sceneObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        const target = entry.target as HTMLElement;
+        if (entry.isIntersecting) visibleTargets.add(target);
+        else visibleTargets.delete(target);
+      });
+      if (!visibleTargets.size && directorFrame) {
+        cancelAnimationFrame(directorFrame);
+        directorFrame = 0;
+      } else startDirector();
+    });
+
+    scenes.forEach((scene) => {
+      scene.style.setProperty('--p', '0');
+      sceneObserver.observe(scene);
+    });
+    editorialSections.forEach((section) => {
+      section.style.setProperty('--enter', reducedMotion.matches ? '1' : '0');
+      sceneObserver.observe(section);
+    });
+    revealItems.forEach((item) => item.style.setProperty('--reveal', reducedMotion.matches ? '1' : '0'));
+    revealGroups.forEach((group) => {
+      if (!editorialSections.includes(group)) sceneObserver.observe(group);
+    });
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden && directorFrame) {
+        cancelAnimationFrame(directorFrame);
+        directorFrame = 0;
+      } else startDirector();
+    }, { signal });
+    signal.addEventListener('abort', () => {
+      sceneObserver.disconnect();
+      if (directorFrame) cancelAnimationFrame(directorFrame);
+    }, { once: true });
+    reducedMotion.addEventListener('change', bindMotionDirector, { signal });
+    compactLayout.addEventListener('change', bindMotionDirector, { signal });
+    startDirector();
+  };
+
+  document.addEventListener('astro:page-load', bindMotionDirector);
+  bindMotionDirector();
+</script>

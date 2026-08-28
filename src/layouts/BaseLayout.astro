@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content';
 import { ClientRouter } from 'astro:transitions';
 import EnvironmentLighting from '../components/common/EnvironmentLighting.astro';
+import MotionDirector from '../components/common/MotionDirector.astro';
 import MusicPlayer from '../components/common/MusicPlayer.astro';
 import SiteStats from '../components/common/SiteStats.astro';
 import CustomCursor from '../components/common/CustomCursor.astro';
@@ -36,7 +37,7 @@ const searchItems = [
 <html lang="zh-CN" data-lighting-register={lightingRegister} data-lighting-preset={DEFAULT_LIGHTING_PRESET}>
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
     <meta name="description" content={description} />
     <meta name="author" content="nabunana" />
@@ -79,6 +80,7 @@ const searchItems = [
     <slot />
     {isFormalPage && <SiteStats />}
     {isFormalPage && <CustomCursor />}
+    <MotionDirector />
     <MusicPlayer />
     {prototype && <nav class="lab-bar" aria-label="原型快速切换">
       <a class="lab-label" href="/prototype/">Design Lab</a>
@@ -86,7 +88,7 @@ const searchItems = [
       <button class="icon-button" type="button" data-search-open aria-label="打开搜索">⌕</button>
     </nav>}
 
-    <dialog class="search-dialog" data-search-dialog aria-labelledby="search-title">
+    <dialog class="search-dialog" data-search-dialog aria-labelledby="search-title" transition:persist="search-dialog">
       <h2 id="search-title" class="sr-only">站内搜索</h2>
       <div class="search-head">
         <span aria-hidden="true">⌕</span>
@@ -109,11 +111,73 @@ const searchItems = [
         const input = document.querySelector<HTMLInputElement>('[data-search-input]');
         const items = [...document.querySelectorAll<HTMLElement>('[data-search-item]')];
         const empty = document.querySelector<HTMLElement>('[data-search-empty]');
-        const openSearch = () => { dialog?.showModal(); requestAnimationFrame(() => input?.focus()); };
-        const closeSearch = () => dialog?.close();
-        document.querySelectorAll('[data-search-open]').forEach((button) => button.addEventListener('click', openSearch, { signal }));
+        const motion = matchMedia('(prefers-reduced-motion: reduce)');
+        const openEase = 'cubic-bezier(.16, 1, .3, 1)';
+        const closeEase = 'cubic-bezier(.4, 0, 1, 1)';
+        let lastOrigin: DOMRect | null = null;
+        let closing = false;
+
+        const originRect = (target: EventTarget | null) => {
+          if (target instanceof Element) return target.getBoundingClientRect();
+          return null;
+        };
+        const offsetFrom = (origin: DOMRect | null, dest: DOMRect) => {
+          if (!origin) return { x: 0, y: 0 };
+          return {
+            x: origin.left + origin.width / 2 - (dest.left + dest.width / 2),
+            y: origin.top + origin.height / 2 - (dest.top + dest.height / 2),
+          };
+        };
+        const playSearch = (origin: DOMRect | null, reverse: boolean) => {
+          if (!dialog) return null;
+          const dest = dialog.getBoundingClientRect();
+          const { x, y } = offsetFrom(origin, dest);
+          const open = { transform: 'translate3d(0,0,0) scale(1)', opacity: 1 };
+          const folded = origin
+            ? { transform: `translate3d(${x}px, ${y}px, 0) scale(.86)`, opacity: 0 }
+            : { transform: 'translate3d(0,8px,0) scale(.96)', opacity: 0 };
+          return dialog.animate(reverse ? [open, folded] : [folded, open], {
+            duration: reverse ? 180 : 160,
+            easing: reverse ? closeEase : openEase,
+            fill: reverse ? 'forwards' : 'none',
+          });
+        };
+        const openSearch = (origin?: EventTarget | null) => {
+          if (!dialog) return;
+          if (dialog.open) {
+            if (closing) return;
+            input?.focus();
+            return;
+          }
+          lastOrigin = originRect(origin ?? null);
+          dialog.classList.remove('is-closing');
+          dialog.showModal();
+          requestAnimationFrame(() => {
+            if (!motion.matches) {
+              dialog.getAnimations().forEach((animation) => animation.cancel());
+              playSearch(lastOrigin, false);
+            }
+            input?.focus();
+          });
+        };
+        const closeSearch = async () => {
+          if (!dialog?.open || closing) return;
+          closing = true;
+          dialog.classList.add('is-closing');
+          if (!motion.matches) {
+            dialog.getAnimations().forEach((animation) => animation.cancel());
+            const animation = playSearch(lastOrigin, true);
+            try { await animation?.finished; } catch {}
+          }
+          dialog.close();
+          dialog.classList.remove('is-closing');
+          dialog.getAnimations().forEach((animation) => animation.cancel());
+          closing = false;
+        };
+        document.querySelectorAll('[data-search-open]').forEach((button) => button.addEventListener('click', (event) => openSearch(event.currentTarget), { signal }));
         document.querySelector('[data-search-close]')?.addEventListener('click', closeSearch, { signal });
         dialog?.addEventListener('click', (event) => { if (event.target === dialog) closeSearch(); }, { signal });
+        dialog?.addEventListener('cancel', (event) => { event.preventDefault(); closeSearch(); }, { signal });
         document.addEventListener('keydown', (event) => {
           if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') { event.preventDefault(); openSearch(); }
         }, { signal });
@@ -123,6 +187,7 @@ const searchItems = [
           items.forEach((item) => { const visible = !query || item.dataset.searchText?.includes(query); item.hidden = !visible; if (visible) count++; });
           if (empty) empty.hidden = count > 0;
         }, { signal });
+        document.addEventListener('astro:before-swap', () => { if (dialog?.open) dialog.close(); }, { signal });
       };
       document.addEventListener('astro:page-load', bindGlobalControls);
       bindGlobalControls();

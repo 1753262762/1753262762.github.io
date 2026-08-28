@@ -10,10 +10,10 @@ const formatDate = (date: Date) => new Intl.DateTimeFormat('zh-CN', { year:'nume
 <BaseLayout title="文章 · nabunana" description="工程复盘、学习笔记、ACG 与生活记录。" pageClass="acg-site" lightingRegister="grove">
   <SiteHeader current="writing" />
   <PageHero eyebrow="文章 / WRITING" title={'把做过的事，\n慢慢写清楚。'} description="工程复盘、学习笔记与兴趣记录。这里只保留仍然值得阅读和继续维护的内容。" count={`${posts.length} ENTRIES`} />
-  <main class="writing-page container">
-    <div class="writing-tools"><p>記憶 / ARCHIVE</p><button type="button" data-search-open>搜索文章 <span>⌘K</span></button></div>
+  <main class="writing-page container" data-editorial-depth data-reveal-group>
+    <div class="writing-tools" data-scroll-reveal><p>記憶 / ARCHIVE</p><button type="button" data-search-open>搜索文章 <span>⌘K</span></button></div>
     <section class="writing-list" aria-label="文章列表">
-      {posts.map((post, index) => <a href={`/blog/${post.id}/`}><span class="index">{String(index + 1).padStart(2,'0')}</span><div class="meta"><time datetime={post.data.published.toISOString()}>{formatDate(post.data.published)}</time><small>{post.data.category}</small></div><div><h2>{post.data.title}</h2><p>{post.data.description}</p><footer>{post.data.tags.slice(0,4).map((tag)=><span>#{tag}</span>)}</footer></div><b>{post.data.readingTime}<i>↗</i></b></a>)}
+      {posts.map((post, index) => <a href={`/blog/${post.id}/`} data-scroll-reveal><span class="index">{String(index + 1).padStart(2,'0')}</span><div class="meta"><time datetime={post.data.published.toISOString()}>{formatDate(post.data.published)}</time><small>{post.data.category}</small></div><div><h2>{post.data.title}</h2><p>{post.data.description}</p><footer>{post.data.tags.slice(0,4).map((tag)=><span>#{tag}</span>)}</footer></div><b>{post.data.readingTime}<i>↗</i></b></a>)}
     </section>
   </main>
   <footer class="page-footer"><div class="container"><strong>文章会留下，过时的内容不会占据首页。</strong><a href="/rss.xml">RSS 订阅 ↗</a></div></footer>
