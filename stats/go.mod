@@ -1,4 +1,4 @@
-module github.com/1753262762/nabunana-stats
+module github.com/dailiuyi/blog/stats
 
 go 1.25.0
 
