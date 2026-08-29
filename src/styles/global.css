@@ -27,7 +27,7 @@ body {
   --font-sans: "Noto Sans SC Variable", "Noto Sans SC", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
   --font-serif: "LXGW WenKai Subset", "LXGW WenKai", "Kaiti SC", "STKaiti", serif;
 }
-body > :not(.environment-lighting):not(.environment-switcher):not(.custom-cursor):not(script) { position: relative; z-index: 1; }
+body > :not(.environment-lighting):not(.environment-switcher):not(.custom-cursor):not(.site-player):not(script) { position: relative; z-index: 1; }
 .prototype-product .environment-lighting,
 .prototype-dev .environment-lighting { visibility: hidden; opacity: 0; }
 a { color: inherit; text-decoration: none; }

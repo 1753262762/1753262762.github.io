@@ -76,7 +76,7 @@
 
 - 页面容器上限约 `1180px`。
 - 主要依靠留白、细线和明暗对比建立层级。
-- 首页仍按 Hero → Currently → Writing → Music → Notes → Projects → Watching → Fragments → About 排列，不重排信息架构。Hero、Currently、Music、Watching 是四幕 scroll-driven 电影章；Writing、Notes、Projects、Fragments、About 是五段普通编辑流。电影章之间由文档流留出呼吸，页面不是 scroll-snap 式全屏演示。
+- 首页仍按 Hero → Currently → Writing → Music → Notes → Projects → Watching → Fragments → About 排列，不重排信息架构。Hero、Currently、Watching 是 scroll-driven 电影章；Music 是暗房章节，不占用加长滚动时间轴；Writing、Notes、Projects、Fragments、About 是普通编辑流。电影章之间由文档流留出呼吸，页面不是 scroll-snap 式全屏演示。
 - 电影章使用 `track + sticky pin + stage`：桌面 pin 固定在 `top: 0`、高 `100svh`，底部至少留出 `80px` 给播放器与环境控件；锚点始终落在 track 顶。站点 Header 保持普通文档流。
 - 文章列表使用 Editorial List，不使用重复圆角卡片。
 - 正文阅读优先，ACG 视觉不得侵入文章主体。
@@ -98,7 +98,7 @@
 - 播放器默认不自动播放，保留用户选择的歌曲、位置和音量；专辑封面可从首页直接开始播放。
 - 展开播放器使用与播放器主体同宽的独立歌词层显示日文原文与同句中文译文；根据整首 LRC 的日中交替结构配对同句翻译，不能把译文与下一句原文错配。纯音乐明确显示 `Instrumental / 无歌词`。歌曲选择面板位于歌词上方，按专辑折叠分组，任何视口下都不得与歌词重叠。
 - 站内导航使用 Astro `ClientRouter`，播放器根节点必须保持同名 `transition:persist`，禁止在页面切换时重建正在播放的 `<audio>`。
-- 当前音乐库为七张用户确认的专辑，共 94 首；首页暗房章节使用滚动进度连续驱动、不可循环的 3D 封面景深，第一张到最后一张严格对应页面时间轴。水平拖拽和方向键只改变同一页面进度，不设自动巡航、不抢占竖直滚轮；完整专辑资料与封面画廊集中在音乐页。
+- 当前音乐库为七张用户确认的专辑，共 94 首；首页暗房章节使用不可循环的 3D 封面景深。竖直滚轮只滚动页面，不切换专辑；浏览专辑使用水平拖拽或方向键，点击封面从该专辑第一首播放。不设自动巡航、不循环。完整专辑资料与封面画廊集中在音乐页。
 - Favorite Artists 只展示用户已经确认的 Yorushika 与 n-buna；其他条目使用明确占位。
 - Vocaloid 采用 Japanese Music Archive 语义，围绕制作人、作品、听感和个人笔记组织。
 - 音乐页允许更深的海绿色背景与唱片抽象图形，但仍需保持博客导航和可读性。
@@ -111,7 +111,7 @@
 - 首页滚动叙事只有一个 rAF 导演，按 `p = clamp(-track.top / (track.height - viewport), 0, 1)` 写入章节 `--p`；滚动本身零 duration，正向与反向必须沿同一时间轴连续还原。禁止一次性 fade-in、`scroll-snap`、GSAP/Lenis 与滚轮劫持。
 - 滚动驱动的文案位移不超过 `32px`，Motif 不超过 `24px`，比例限制在 `0.94–1.04`，Music `rotateY` 不超过 `12deg`。文档流整段只允许 `opacity: .35 → 1` 与 `translateY: 16px → 0`，不得让每条列表分别飞入。
 - 禁止 Bounce、高频 Parallax 和快速位移。
-- `≤900px` 取消 sticky 加长，章节回到正常文档流；Music 仅保留水平拖拽与键盘切换，不增加巡航。`prefers-reduced-motion` 下 track 塌回内容高度、章节进度冻结，所有内容不依赖动画也能完整阅读。
+- `≤900px` 取消 Hero / Watching 的 sticky 加长，章节回到正常文档流。Music 在所有视口都由水平拖拽与方向键切换，不占用滚动时间轴，不增加巡航。`prefers-reduced-motion` 下 track 塌回内容高度、章节进度冻结，所有内容不依赖动画也能完整阅读。
 - 触摸移动端保留 2px 天气视差；只有 `prefers-reduced-motion` 才归零。
 
 ## 9. Responsive Rules

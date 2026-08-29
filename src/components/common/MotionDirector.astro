@@ -8,7 +8,7 @@
     motionAbort = new AbortController();
     const { signal } = motionAbort;
     const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
-    const compactLayout = matchMedia('(max-width: 900px), (max-height: 800px)');
+    const compactLayout = matchMedia('(max-width: 900px)');
     const scenes = [...document.querySelectorAll<HTMLElement>('[data-scene]')];
     const editorialSections = [...document.querySelectorAll<HTMLElement>('[data-editorial-depth]')];
     const revealGroups = [...document.querySelectorAll<HTMLElement>('[data-reveal-group]')];
@@ -23,7 +23,7 @@
       directorFrame = 0;
       if (document.hidden || reducedMotion.matches) return;
       visibleTargets.forEach((target) => {
-        if (target.matches('[data-scene]') && !compactLayout.matches) {
+        if (target.matches('[data-scene]') && target.dataset.scene !== 'music' && !compactLayout.matches) {
           const track = target.querySelector<HTMLElement>('.scene-track');
           if (!track) return;
           const distance = track.offsetHeight - innerHeight;
