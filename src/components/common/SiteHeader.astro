@@ -13,8 +13,8 @@ const links = [
 <header class="site-header container">
   <a class="site-brand" href="/" aria-label="nabunana 首页"><span>N</span><i></i><b>nabunana</b></a>
   <nav aria-label="主导航">{links.map((link) => <a href={link.href} aria-current={current === link.key ? 'page' : undefined}><span>{link.label}</span><small>{link.sub}</small></a>)}</nav>
-  <div class="header-actions"><a class="header-action github-link" href="https://github.com/1753262762" target="_blank" rel="me noopener" aria-label="nabunana 的 GitHub"><span>GitHub</span><i aria-hidden="true">↗</i></a><button class="header-action search-action" type="button" data-search-open aria-label="打开搜索"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4 4"></path></svg><span>Search</span></button></div>
-  <details class="mobile-menu"><summary aria-label="打开导航">Menu</summary><div>{links.map((link) => <a href={link.href} aria-current={current === link.key ? 'page' : undefined}>{link.label} / {link.sub}</a>)}<a href="https://github.com/1753262762" target="_blank" rel="me noopener">GitHub ↗</a></div></details>
+  <div class="header-actions"><a class="header-action github-link" href="https://github.com/dailiuyi" target="_blank" rel="me noopener" aria-label="dailiuyi 的 GitHub"><span>GitHub</span><i aria-hidden="true">↗</i></a><button class="header-action search-action" type="button" data-search-open aria-label="打开搜索"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4 4"></path></svg><span>Search</span></button></div>
+  <details class="mobile-menu"><summary aria-label="打开导航">Menu</summary><div>{links.map((link) => <a href={link.href} aria-current={current === link.key ? 'page' : undefined}>{link.label} / {link.sub}</a>)}<a href="https://github.com/dailiuyi" target="_blank" rel="me noopener">GitHub ↗</a></div></details>
 </header>
 
 <style>
